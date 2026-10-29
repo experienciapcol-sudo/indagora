@@ -1,5 +1,6 @@
 // Tope de gasto por sesión y global. La reserva y la revisión de ambos topes van en una
 // sola sentencia SQL, así dos llamadas simultáneas no pueden pasar el tope a la vez.
+// El total global vive en la tabla `totales` para no sumar todas las llamadas cada vez.
 
 export interface Topes {
   sesionUsd: number;
@@ -44,15 +45,23 @@ export interface Reserva {
 
 export async function reservar(db: D1Database, r: Reserva, topes: Topes): Promise<void> {
   if (!Number.isFinite(r.estimadoUsd) || r.estimadoUsd < 0) throw new Error(`Costo estimado inválido: ${r.estimadoUsd}`);
-  const res = await db
-    .prepare(
-      `INSERT INTO llamadas (id, sesion, modelo, proposito, estado, costo_usd)
-       SELECT ?1, ?2, ?3, ?4, 'reservada', ?5
-       WHERE (SELECT COALESCE(SUM(costo_usd), 0) FROM llamadas WHERE sesion = ?2) + ?5 <= ?6
-         AND (SELECT COALESCE(SUM(costo_usd), 0) FROM llamadas) + ?5 <= ?7`,
-    )
-    .bind(r.id, r.sesion, r.modelo, r.proposito, r.estimadoUsd, topes.sesionUsd, topes.globalUsd)
-    .run();
+  // batch corre como una transacción: el total global solo sube si la reserva entró.
+  const [res] = await db.batch([
+    db
+      .prepare(
+        `INSERT INTO llamadas (id, sesion, modelo, proposito, estado, costo_usd)
+         SELECT ?1, ?2, ?3, ?4, 'reservada', ?5
+         WHERE (SELECT COALESCE(SUM(costo_usd), 0) FROM llamadas WHERE sesion = ?2) + ?5 <= ?6
+           AND (SELECT usd FROM totales WHERE clave = 'global') + ?5 <= ?7`,
+      )
+      .bind(r.id, r.sesion, r.modelo, r.proposito, r.estimadoUsd, topes.sesionUsd, topes.globalUsd),
+    db
+      .prepare(
+        `UPDATE totales SET usd = usd + ?2
+         WHERE clave = 'global' AND EXISTS (SELECT 1 FROM llamadas WHERE id = ?1 AND estado = 'reservada')`,
+      )
+      .bind(r.id, r.estimadoUsd),
+  ]);
   if (res.meta.changes === 1) return;
 
   const g = await resumen(db, r.sesion);
@@ -74,7 +83,14 @@ export interface Cierre {
 
 export async function cerrar(db: D1Database, id: string, c: Cierre): Promise<void> {
   if (!Number.isFinite(c.costoUsd) || c.costoUsd < 0) throw new Error(`Costo inválido al cerrar la llamada ${id}: ${c.costoUsd}`);
-  await db
+  // Primero se ajusta el total con la diferencia entre lo real y lo reservado, luego la llamada.
+  const ajuste = db
+    .prepare(
+      `UPDATE totales SET usd = MAX(0, usd + ?2 - (SELECT costo_usd FROM llamadas WHERE id = ?1 AND estado = 'reservada'))
+       WHERE clave = 'global' AND EXISTS (SELECT 1 FROM llamadas WHERE id = ?1 AND estado = 'reservada')`,
+    )
+    .bind(id, c.costoUsd);
+  const llamada = db
     .prepare(
       `UPDATE llamadas SET estado = ?2, costo_usd = ?3, tokens_entrada = ?4, tokens_cache = ?5, tokens_salida = ?6,
          tokens_razonamiento = ?7, ms = ?8, finish = ?9, error = ?10
@@ -91,8 +107,8 @@ export async function cerrar(db: D1Database, id: string, c: Cierre): Promise<voi
       c.ms ?? null,
       c.finish ?? null,
       c.error?.slice(0, 500) ?? null,
-    )
-    .run();
+    );
+  await db.batch([ajuste, llamada]);
 }
 
 export async function resumen(db: D1Database, sesion: string): Promise<{ sesionUsd: number; globalUsd: number; llamadasSesion: number }> {
@@ -101,7 +117,7 @@ export async function resumen(db: D1Database, sesion: string): Promise<{ sesionU
       `SELECT
          (SELECT COALESCE(SUM(costo_usd), 0) FROM llamadas WHERE sesion = ?1) AS sesion_usd,
          (SELECT COUNT(*) FROM llamadas WHERE sesion = ?1) AS llamadas_sesion,
-         (SELECT COALESCE(SUM(costo_usd), 0) FROM llamadas) AS global_usd`,
+         (SELECT usd FROM totales WHERE clave = 'global') AS global_usd`,
     )
     .bind(sesion)
     .first<{ sesion_usd: number; llamadas_sesion: number; global_usd: number }>();

@@ -20,7 +20,10 @@ describe('reservar y cerrar', () => {
     await reservar(db, reserva('a', 's1', 0.05), topes);
     expect((await resumen(db, 's1')).sesionUsd).toBeCloseTo(0.05);
     await cerrar(db, 'a', { estado: 'completada', costoUsd: 0.002, tokensEntrada: 100, tokensSalida: 20 });
-    expect(await resumen(db, 's1')).toEqual({ sesionUsd: 0.002, globalUsd: 0.002, llamadasSesion: 1 });
+    const g = await resumen(db, 's1');
+    expect(g.llamadasSesion).toBe(1);
+    expect(g.sesionUsd).toBeCloseTo(0.002, 12);
+    expect(g.globalUsd).toBeCloseTo(0.002, 12);
   });
 
   it('rechaza la reserva que pasaría el tope de la sesión', async () => {
@@ -61,6 +64,25 @@ describe('reservar y cerrar', () => {
     await expect(reservar(db, reserva('a', 's1', -1), topes)).rejects.toThrow(/estimado/);
     await reservar(db, reserva('b', 's1', 0.01), topes);
     await expect(cerrar(db, 'b', { estado: 'completada', costoUsd: Number.NaN })).rejects.toThrow(/inválido/);
+  });
+
+  it('el total global coincide con la suma de las llamadas', async () => {
+    const db = d1Falsa();
+    await reservar(db, reserva('a', 's1', 0.05), topes);
+    await reservar(db, reserva('b', 's2', 0.07), topes);
+    await cerrar(db, 'a', { estado: 'completada', costoUsd: 0.01 });
+    await cerrar(db, 'b', { estado: 'fallida', costoUsd: 0 });
+    await cerrar(db, 'b', { estado: 'completada', costoUsd: 0.5 });
+    const suma = await db.prepare('SELECT SUM(costo_usd) AS s FROM llamadas').first<{ s: number }>();
+    expect((await resumen(db, 's1')).globalUsd).toBeCloseTo(suma!.s, 12);
+    expect(suma!.s).toBeCloseTo(0.01, 12);
+  });
+
+  it('una reserva rechazada no mueve el total global', async () => {
+    const db = d1Falsa();
+    await reservar(db, reserva('a', 's1', 0.09), topes);
+    await reservar(db, reserva('b', 's1', 0.09), topes).catch(() => {});
+    expect((await resumen(db, 's1')).globalUsd).toBeCloseTo(0.09, 12);
   });
 
   it('con tope 0 no deja pasar nada', async () => {

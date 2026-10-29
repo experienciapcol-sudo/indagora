@@ -14,7 +14,7 @@ export interface VarsModelos {
   MODEL_TRANSCRIBE?: string;
 }
 
-const POR_OMISION: Record<Rol, string> = {
+export const MODELOS_POR_OMISION: Record<Rol, string> = {
   agente: 'muse-spark-1.3',
   contributor: 'muse-spark-1.3-contributor',
   transcripcion: 'muse-voice-transcribe-1.0',
@@ -22,7 +22,7 @@ const POR_OMISION: Record<Rol, string> = {
 
 export function modeloPara(env: VarsModelos, rol: Rol): string {
   const deEnv = { agente: env.MODEL_AGENT, contributor: env.MODEL_AGENT_CONTRIBUTOR, transcripcion: env.MODEL_TRANSCRIBE }[rol];
-  return deEnv?.trim() || POR_OMISION[rol];
+  return deEnv?.trim() || MODELOS_POR_OMISION[rol];
 }
 
 // USD por millón de tokens (página de precios de dev.meta.ai, 28 oct 2026).

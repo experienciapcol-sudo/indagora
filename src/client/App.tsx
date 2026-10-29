@@ -13,7 +13,8 @@ type Prueba = {
 };
 type EstadoPrueba = { tipo: "inactiva" } | { tipo: "corriendo" } | { tipo: "ok"; prueba: Prueba } | { tipo: "error"; mensaje: string };
 
-const usd = (n: number) => `${n.toFixed(4)} USD`;
+// Seis decimales: una llamada de prueba cuesta unas cinco cienmilésimas de dólar.
+const usd = (n: number) => `${n.toFixed(6)} USD`;
 
 export default function App() {
   const [estado, setEstado] = useState<Estado>({ tipo: "cargando" });
@@ -42,7 +43,7 @@ export default function App() {
     setPrueba({ tipo: "corriendo" });
     try {
       const r = await fetch("/api/prueba", { method: "POST" });
-      const cuerpo = await r.json();
+      const cuerpo = await r.json().catch(() => ({}));
       setPrueba(r.ok ? { tipo: "ok", prueba: cuerpo as Prueba } : { tipo: "error", mensaje: cuerpo.error ?? `Error ${r.status}` });
     } catch {
       setPrueba({ tipo: "error", mensaje: "No hay conexión con el servicio." });

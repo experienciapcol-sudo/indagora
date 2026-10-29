@@ -22,5 +22,18 @@ export function d1Falsa(): D1Database {
     first: async <T>() => (db.prepare(sql).get(...valores) as T | undefined) ?? null,
     all: async <T>() => ({ success: true, results: db.prepare(sql).all(...valores) as T[], meta: {} }),
   });
-  return { prepare: (sql: string) => preparar(sql) } as unknown as D1Database;
+  // Como en D1, un batch es una transacción: si una sentencia falla, no queda ninguna.
+  const batch = async (sentencias: ReturnType<typeof preparar>[]) => {
+    db.exec('BEGIN');
+    try {
+      const resultados = [];
+      for (const s of sentencias) resultados.push(await s.run());
+      db.exec('COMMIT');
+      return resultados;
+    } catch (e) {
+      db.exec('ROLLBACK');
+      throw e;
+    }
+  };
+  return { prepare: (sql: string) => preparar(sql), batch } as unknown as D1Database;
 }

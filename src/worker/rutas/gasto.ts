@@ -20,7 +20,9 @@ rutasGasto.use('*', async (c, next) => {
   let sesion = getCookie(c, COOKIE);
   if (!sesion || !UUID.test(sesion)) {
     sesion = crypto.randomUUID();
-    setCookie(c, COOKIE, sesion, { httpOnly: true, secure: true, sameSite: 'Lax', path: '/', maxAge: 60 * 60 * 24 });
+    // Secure solo en https: algunos navegadores descartan cookies Secure en http://localhost.
+    const secure = new URL(c.req.url).protocol === 'https:';
+    setCookie(c, COOKIE, sesion, { httpOnly: true, secure, sameSite: 'Lax', path: '/', maxAge: 60 * 60 * 24 });
   }
   c.set('sesion', sesion);
   await next();
@@ -43,6 +45,11 @@ const ORACION_FICTICIA = 'La entrega del lunes salió dos días tarde porque fal
 
 rutasGasto.post('/prueba', async (c) => {
   const sesion = c.get('sesion');
+  // La cookie de sesión se puede descartar; el límite por IP frena a quien la renueva en cada petición.
+  const ip = c.req.header('cf-connecting-ip') ?? 'sin-ip';
+  if (!(await c.env.LIMITE_META.limit({ key: ip })).success) {
+    return c.json({ error: 'Demasiadas llamadas seguidas; espera un minuto.' }, 429);
+  }
   try {
     const r = await llamarMeta(
       { env: c.env, db: c.env.DB },

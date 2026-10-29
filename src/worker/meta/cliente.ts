@@ -2,7 +2,7 @@
 // esfuerzo obligatorio, salida con esquema estricto, tope de gasto antes de salir, costo real
 // al volver, un solo reintento y revisión de finish_reason.
 import { ESFUERZOS, modeloPara, precioDe, type Esfuerzo, type PrecioTokens, type RolTexto, type VarsModelos } from '../../config/models';
-import { cerrar, leerTopes, reservar, type VarsTopes } from '../gasto/gasto';
+import { cerrar, leerTopes, reservar, TopeAlcanzado, type VarsTopes } from '../gasto/gasto';
 import type { Salida } from './esquema';
 
 export interface VarsMeta extends VarsModelos, VarsTopes {
@@ -71,6 +71,15 @@ export class ErrorMeta extends Error {
 const MAX_TOKENS_POR_OMISION = 4000;
 const TIMEOUT_POR_OMISION_MS = 60_000;
 const ESPERA_REINTENTO_MS = 800;
+const ESPERA_MAXIMA_MS = 5_000;
+
+// Retry-After en segundos; null si pide esperar más que ESPERA_MAXIMA_MS.
+export function esperaDe(retryAfter: string | null): number | null {
+  const segundos = retryAfter === null ? Number.NaN : Number(retryAfter);
+  if (!Number.isFinite(segundos) || segundos < 0) return ESPERA_REINTENTO_MS;
+  const ms = segundos * 1000;
+  return ms > ESPERA_MAXIMA_MS ? null : Math.max(ESPERA_REINTENTO_MS, ms);
+}
 
 export async function llamarMeta<T>(deps: Dependencias, p: Peticion<T>): Promise<Respuesta<T>> {
   if (!ESFUERZOS.includes(p.esfuerzo)) throw new ErrorMeta(`Esfuerzo de razonamiento inválido: ${String(p.esfuerzo)}`, 'config');
@@ -98,8 +107,14 @@ export async function llamarMeta<T>(deps: Dependencias, p: Peticion<T>): Promise
   let ultimo: ErrorMeta | undefined;
   for (let n = 1; n <= 2; n++) {
     const id = crypto.randomUUID();
-    // Si se alcanzó el tope, TopeAlcanzado sale de aquí sin llamar a la API.
-    await reservar(deps.db, { id, sesion: p.sesion, modelo, proposito: p.proposito, estimadoUsd }, topes);
+    // Si se alcanzó el tope, TopeAlcanzado sale de aquí sin llamar a la API. En el reintento
+    // se informa el fallo original, que es lo que el usuario necesita saber.
+    try {
+      await reservar(deps.db, { id, sesion: p.sesion, modelo, proposito: p.proposito, estimadoUsd }, topes);
+    } catch (e) {
+      if (ultimo && e instanceof TopeAlcanzado) throw ultimo;
+      throw e;
+    }
     const r = await intentar(id, intento);
     if (r.ok) {
       if (p.grabar && p.clave) await grabar(deps.db, p.clave, modelo, r.datos);
@@ -107,7 +122,7 @@ export async function llamarMeta<T>(deps: Dependencias, p: Peticion<T>): Promise
     }
     ultimo = r.error;
     if (!r.reintentable) break;
-    if (n === 1) await (deps.esperar ?? dormir)(ESPERA_REINTENTO_MS);
+    if (n === 1) await (deps.esperar ?? dormir)(r.esperaMs);
   }
   throw ultimo!;
 }
@@ -124,7 +139,7 @@ type Intento<T> = {
 
 type Resultado<T> =
   | { ok: true; datos: T; uso: Uso | null; costoUsd: number; ms: number }
-  | { ok: false; error: ErrorMeta; reintentable: boolean };
+  | { ok: false; error: ErrorMeta; reintentable: boolean; esperaMs: number };
 
 // Un intento siempre cierra su reserva, con el costo real o con 0 si la API no cobró.
 async function intentar<T>(id: string, x: Intento<T>): Promise<Resultado<T>> {
@@ -143,7 +158,7 @@ async function intentar<T>(id: string, x: Intento<T>): Promise<Resultado<T>> {
   } catch (e) {
     // Sin respuesta no se sabe si hubo cobro (p. ej., tiempo agotado): se queda lo estimado.
     await cerrar(db, id, { estado: 'fallida', costoUsd: x.estimadoUsd, ms: Date.now() - inicio, error: `red: ${mensajeDe(e)}` });
-    return { ok: false, error: new ErrorMeta('No se pudo completar la llamada a la API de Meta', 'red'), reintentable: true };
+    return { ok: false, error: new ErrorMeta('No se pudo completar la llamada a la API de Meta', 'red'), reintentable: true, esperaMs: ESPERA_REINTENTO_MS };
   }
   const ms = Date.now() - inicio;
   const json = leerJson(texto) as RespuestaChat | null;
@@ -151,10 +166,13 @@ async function intentar<T>(id: string, x: Intento<T>): Promise<Resultado<T>> {
   if (!res.ok) {
     const detalle = json?.error?.message ?? texto.slice(0, 200);
     await cerrar(db, id, { estado: 'fallida', costoUsd: 0, ms, error: `HTTP ${res.status}: ${detalle}` });
+    const esperaMs = esperaDe(res.headers.get('retry-after'));
     return {
       ok: false,
       error: new ErrorMeta(`La API de Meta respondió ${res.status}`, 'http', res.status),
-      reintentable: res.status === 429 || res.status >= 500,
+      // Si la API pide esperar más de lo razonable, no se reintenta.
+      reintentable: (res.status === 429 || res.status >= 500) && esperaMs !== null,
+      esperaMs: esperaMs ?? 0,
     };
   }
 
@@ -174,7 +192,7 @@ async function intentar<T>(id: string, x: Intento<T>): Promise<Resultado<T>> {
   };
   const fallo = async (error: ErrorMeta, reintentable: boolean): Promise<Resultado<T>> => {
     await cerrar(db, id, { ...cierre, estado: 'fallida', error: error.message });
-    return { ok: false, error, reintentable };
+    return { ok: false, error, reintentable, esperaMs: ESPERA_REINTENTO_MS };
   };
 
   if (finish === 'length') return fallo(new ErrorMeta('La salida se cortó por max_tokens', 'truncada'), false);
@@ -224,9 +242,11 @@ async function reproducir<T>(db: D1Database, p: Peticion<T>, modelo: string): Pr
   return { datos: validado.data, modelo, costoUsd: 0, uso: null, ms: 0, intentos: 0, demo: true };
 }
 
+// Solo graba la primera vez: una grabación elegida no se pisa con cada llamada. Para regrabar,
+// se borra la fila antes.
 async function grabar(db: D1Database, clave: string, modelo: string, datos: unknown): Promise<void> {
   await db
-    .prepare('INSERT OR REPLACE INTO grabaciones (clave, modelo, datos) VALUES (?1, ?2, ?3)')
+    .prepare('INSERT OR IGNORE INTO grabaciones (clave, modelo, datos) VALUES (?1, ?2, ?3)')
     .bind(clave, modelo, JSON.stringify(datos))
     .run();
 }

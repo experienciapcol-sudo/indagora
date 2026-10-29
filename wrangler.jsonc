@@ -21,6 +21,14 @@
       "migrations_dir": "migrations"
     }
   ],
+  // Límite por IP para las rutas que llaman a Meta (además de los topes de gasto)
+  "ratelimits": [
+    {
+      "name": "LIMITE_META",
+      "namespace_id": "1001",
+      "simple": { "limit": 5, "period": 60 }
+    }
+  ],
   // El secreto META_API_KEY NO va aquí: .dev.vars en local, `wrangler secret` en producción
   "vars": {
     "META_API_BASE_URL": "https://api.meta.ai/v1",

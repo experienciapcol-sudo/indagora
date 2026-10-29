@@ -4,12 +4,13 @@ import { d1Falsa } from '../gasto/d1-falsa';
 import { resumen, TopeAlcanzado } from '../gasto/gasto';
 import { costoDe, ErrorMeta, estimarCosto, leerUso, llamarMeta, type Peticion, type VarsMeta } from './cliente';
 import { definirSalida } from './esquema';
+import { MODELOS_POR_OMISION } from '../../config/models';
 
 const salida = definirSalida('eco', z.object({ eco: z.string() }));
 const env: VarsMeta = {
   META_API_KEY: 'llave-de-prueba',
   META_API_BASE_URL: 'https://meta.prueba/v1/',
-  MODEL_AGENT: 'muse-spark-1.3',
+  MODEL_AGENT: MODELOS_POR_OMISION.agente,
   TOPE_SESION_USD: '1',
   TOPE_GLOBAL_USD: '5',
   DEMO_MODE: 'false',
@@ -51,7 +52,7 @@ describe('llamarMeta', () => {
     expect(r.intentos).toBe(1);
     expect(llamadas[0].url).toBe('https://meta.prueba/v1/chat/completions');
     const cuerpo = JSON.parse(llamadas[0].init.body as string);
-    expect(cuerpo.model).toBe('muse-spark-1.3');
+    expect(cuerpo.model).toBe(MODELOS_POR_OMISION.agente);
     expect(cuerpo.reasoning_effort).toBe('low');
     expect(cuerpo.max_tokens).toBe(1000);
     expect(cuerpo.response_format.json_schema).toMatchObject({ name: 'eco', strict: true });
@@ -78,6 +79,25 @@ describe('llamarMeta', () => {
     const e = await llamarMeta(deps(f), peticion).catch((x) => x);
     expect(e).toBeInstanceOf(ErrorMeta);
     expect(e.status).toBe(400);
+    expect(llamadas).toHaveLength(1);
+  });
+
+  it('respeta Retry-After corto y no reintenta si pide esperar mucho', async () => {
+    const esperas: number[] = [];
+    const corto = fetchFalso(new Response('', { status: 429, headers: { 'retry-after': '2' } }), ok({ eco: 'x' }));
+    await llamarMeta({ ...deps(corto.f), esperar: async (ms) => void esperas.push(ms) }, peticion);
+    expect(esperas).toEqual([2000]);
+    const largo = fetchFalso(new Response('', { status: 429, headers: { 'retry-after': '120' } }));
+    await expect(llamarMeta(deps(largo.f), peticion)).rejects.toMatchObject({ status: 429 });
+    expect(largo.llamadas).toHaveLength(1);
+  });
+
+  it('si el tope impide el reintento, informa el fallo original', async () => {
+    const { f, llamadas } = fetchFalso(new TypeError('sin red'));
+    // Lo estimado (unos 0.0044 USD) se conserva tras un error de red: el tope deja pasar
+    // la primera reserva, pero no la segunda.
+    const d = deps(f, { TOPE_SESION_USD: '0.006' });
+    await expect(llamarMeta(d, peticion)).rejects.toMatchObject({ tipo: 'red' });
     expect(llamadas).toHaveLength(1);
   });
 
