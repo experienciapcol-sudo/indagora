@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "indagora",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-10-23",
+  "assets": {
+    // SPA: cualquier ruta desconocida sirve index.html
+    "not_found_handling": "single-page-application",
+    // La API pasa primero por el Worker; el resto lo sirven los assets
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": {
+    "enabled": true,
+    "traces": { "enabled": true }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "indagora-db",
+      // Se rellena después de crear la base en Cloudflare
+      "database_id": "PENDIENTE",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // El secreto META_API_KEY NO va aquí: .dev.vars en local, `wrangler secret` en producción
+  "vars": {
+    "META_API_BASE_URL": "https://api.meta.ai/v1",
+    "MODEL_AGENT": "muse-spark-1.3",
+    "MODEL_AGENT_CONTRIBUTOR": "muse-spark-1.3-contributor",
+    "MODEL_TRANSCRIBE": "muse-voice-transcribe-1.0",
+    "DEMO_MODE": "false",
+    "TOPE_SESION_USD": "0.25",
+    "TOPE_GLOBAL_USD": "5"
+  }
+}
