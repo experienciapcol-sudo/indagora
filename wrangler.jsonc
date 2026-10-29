@@ -17,8 +17,7 @@
     {
       "binding": "DB",
       "database_name": "indagora-db",
-      // Se rellena después de crear la base en Cloudflare
-      "database_id": "PENDIENTE",
+      "database_id": "1f193580-cf45-4dda-a6a3-5bac51b8f237",
       "migrations_dir": "migrations"
     }
   ],
