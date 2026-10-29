@@ -4,20 +4,8 @@ import type { Bindings } from '../env';
 import { d1Falsa } from '../gasto/d1-falsa';
 import { MODELOS_POR_OMISION } from '../../config/models';
 
-// Límite falso: deja pasar `cupo` llamadas por clave.
-const limite = (cupo = 100): RateLimit => {
-  const usadas = new Map<string, number>();
-  return {
-    limit: async ({ key }) => {
-      usadas.set(key, (usadas.get(key) ?? 0) + 1);
-      return { success: usadas.get(key)! <= cupo };
-    },
-  };
-};
-
 const env = (extra: Partial<Bindings> = {}): Bindings => ({
   DB: d1Falsa(),
-  LIMITE_META: limite(),
   META_API_KEY: 'llave-de-prueba',
   META_API_BASE_URL: 'https://meta.prueba/v1',
   MODEL_AGENT: MODELOS_POR_OMISION.agente,
@@ -45,13 +33,15 @@ describe('rutas de gasto', () => {
   });
 
   it('POST /api/prueba limita por IP aunque cambie la sesión', async () => {
-    const e = env({ TOPE_GLOBAL_USD: '0', LIMITE_META: limite(2) });
+    // Con el tope global en cero, las cinco permitidas responden 429 por tope; la sexta, por límite.
+    const e = env({ TOPE_GLOBAL_USD: '0' });
     const pedir = () => app.request('/api/prueba', { method: 'POST', headers: { 'cf-connecting-ip': '203.0.113.7' } }, e);
-    await pedir();
-    await pedir();
-    const tercera = await pedir();
-    expect(tercera.status).toBe(429);
-    expect(await tercera.json()).toEqual({ error: 'Demasiadas llamadas seguidas; espera un minuto.' });
+    for (let i = 0; i < 5; i++) expect(await (await pedir()).json()).toMatchObject({ alcance: 'global' });
+    const sexta = await pedir();
+    expect(sexta.status).toBe(429);
+    expect(await sexta.json()).toEqual({ error: 'Demasiadas llamadas seguidas; espera un minuto.' });
+    const otraIp = await app.request('/api/prueba', { method: 'POST', headers: { 'cf-connecting-ip': '198.51.100.2' } }, e);
+    expect(await otraIp.json()).toMatchObject({ alcance: 'global' });
   });
 
   it('una cookie mal formada se reemplaza', async () => {

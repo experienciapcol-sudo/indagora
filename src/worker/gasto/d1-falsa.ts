@@ -16,6 +16,10 @@ export function d1Falsa(): D1Database {
   const preparar = (sql: string, valores: Valor[] = []) => ({
     bind: (...v: Valor[]) => preparar(sql, v),
     run: async () => {
+      if (/\bRETURNING\b/i.test(sql)) {
+        const filas = db.prepare(sql).all(...valores);
+        return { success: true, results: filas, meta: { changes: filas.length } };
+      }
       const r = db.prepare(sql).run(...valores);
       return { success: true, results: [], meta: { changes: Number(r.changes) } };
     },

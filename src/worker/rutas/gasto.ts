@@ -5,6 +5,7 @@ import { getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
 import type { Bindings } from '../env';
 import { leerTopes, resumen, TopeAlcanzado } from '../gasto/gasto';
+import { dentroDelLimite } from '../gasto/limite';
 import { ErrorMeta, llamarMeta } from '../meta/cliente';
 import { definirSalida } from '../meta/esquema';
 
@@ -41,13 +42,15 @@ const salidaPrueba = definirSalida(
   }),
 );
 
+const LIMITE_PRUEBA = { llamadas: 5, periodoS: 60 };
+
 const ORACION_FICTICIA = 'La entrega del lunes salió dos días tarde porque faltó una pieza del proveedor.';
 
 rutasGasto.post('/prueba', async (c) => {
   const sesion = c.get('sesion');
   // La cookie de sesión se puede descartar; el límite por IP frena a quien la renueva en cada petición.
   const ip = c.req.header('cf-connecting-ip') ?? 'sin-ip';
-  if (!(await c.env.LIMITE_META.limit({ key: ip })).success) {
+  if (!(await dentroDelLimite(c.env.DB, ip, LIMITE_PRUEBA))) {
     return c.json({ error: 'Demasiadas llamadas seguidas; espera un minuto.' }, 429);
   }
   try {
