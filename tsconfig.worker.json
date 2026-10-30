@@ -19,6 +19,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/worker", "src/config", "worker-configuration.d.ts"],
+  "include": ["src/worker", "src/config", "src/nucleo", "worker-configuration.d.ts"],
   "exclude": ["src/**/*.test.ts", "src/worker/gasto/d1-falsa.ts"]
 }
