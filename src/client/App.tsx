@@ -4,6 +4,9 @@ import { calcularNiveles } from '../nucleo/niveles';
 import { CASO_TALLER } from '../nucleo/casos/taller';
 import { analizarFuente, esAbortada, obtenerGasto, obtenerSalud } from './api';
 import type { Gasto } from './api';
+import { PanelAgente } from './agente/PanelAgente';
+import { Pestanas } from './agente/Pestanas';
+import type { Pestana } from './agente/Pestanas';
 import { Encabezado } from './Encabezado';
 import type { EstadoServicio } from './Encabezado';
 import { PanelAnalisis } from './PanelAnalisis';
@@ -26,6 +29,7 @@ export default function App() {
   const [analizando, setAnalizando] = useState(false);
   const [deteniendo, setDeteniendo] = useState(false);
   const [aviso, setAviso] = useState('');
+  const [pestana, setPestana] = useState<Pestana>('agente');
 
   // El bucle de análisis lee siempre el estado más reciente a través de esta referencia.
   const estadosRef = useRef<EstadosPorFuente>({});
@@ -173,64 +177,71 @@ export default function App() {
     <div className="pagina">
       <Encabezado servicio={servicio} gasto={gasto} />
       <p className="regla-nivel">{T.reglaNivel}</p>
+      <Pestanas activa={pestana} onCambiar={setPestana} />
 
       <main>
-        <PanelFuentes
-          fuentes={fuentes}
-          caso={caso}
-          bloqueado={analizando}
-          onAgregar={agregarFuente}
-          onQuitar={quitarFuente}
-          onCargarCaso={cargarCaso}
-        />
+        <div role="tabpanel" id="panel-agente" aria-labelledby="pestana-agente" hidden={pestana !== 'agente'}>
+          <PanelAgente alGasto={(g) => setGasto((x) => (x ? { ...x, ...g } : x))} />
+        </div>
 
-        <PanelAnalisis
-          fuentes={fuentes}
-          estados={estados}
-          analizando={analizando}
-          deteniendo={deteniendo}
-          aviso={aviso}
-          onAnalizar={analizarPendientes}
-          onReanalizar={reanalizarTodo}
-          onDetener={detener}
-        />
+        <div role="tabpanel" id="panel-evidencia" aria-labelledby="pestana-evidencia" hidden={pestana !== 'evidencia'}>
+          <PanelFuentes
+            fuentes={fuentes}
+            caso={caso}
+            bloqueado={analizando}
+            onAgregar={agregarFuente}
+            onQuitar={quitarFuente}
+            onCargarCaso={cargarCaso}
+          />
 
-        {fuentesListas.length === 1 && (
-          <p className="aviso-fijo" role="note">
-            {T.avisoUnaFuente}
-          </p>
-        )}
+          <PanelAnalisis
+            fuentes={fuentes}
+            estados={estados}
+            analizando={analizando}
+            deteniendo={deteniendo}
+            aviso={aviso}
+            onAnalizar={analizarPendientes}
+            onReanalizar={reanalizarTodo}
+            onDetener={detener}
+          />
 
-        {fuentesListas.length > 0 && <Rechazos grupos={grupos} />}
+          {fuentesListas.length === 1 && (
+            <p className="aviso-fijo" role="note">
+              {T.avisoUnaFuente}
+            </p>
+          )}
 
-        {fuentesListas.length > 0 && (
-          <section className="panel panel--resultados" aria-labelledby="t-resultados">
-            <div className="panel__cabeza">
-              <span className="folio" aria-hidden="true">III</span>
-              <h2 id="t-resultados">{T.resultados.titulo}</h2>
-              <button type="button" className="boton boton--secundario panel__accion" onClick={exportar}>
-                {T.exportar.boton}
-              </button>
-            </div>
-            <p className="ayuda">{T.exportar.ayuda}</p>
+          {fuentesListas.length > 0 && <Rechazos grupos={grupos} />}
 
-            {fuentesListas.map((f) => {
-              const e = estados[f.id];
-              if (e?.tipo !== 'lista') return null;
-              return (
-                <ResultadoFuente
-                  key={f.id}
-                  fuente={f}
-                  resp={e.resp}
-                  todas={todas}
-                  niveles={niveles}
-                  confirmadas={confirmadas}
-                  onAlternarConfirmacion={alternarConfirmacion}
-                />
-              );
-            })}
-          </section>
-        )}
+          {fuentesListas.length > 0 && (
+            <section className="panel panel--resultados" aria-labelledby="t-resultados">
+              <div className="panel__cabeza">
+                <span className="folio" aria-hidden="true">III</span>
+                <h2 id="t-resultados">{T.resultados.titulo}</h2>
+                <button type="button" className="boton boton--secundario panel__accion" onClick={exportar}>
+                  {T.exportar.boton}
+                </button>
+              </div>
+              <p className="ayuda">{T.exportar.ayuda}</p>
+
+              {fuentesListas.map((f) => {
+                const e = estados[f.id];
+                if (e?.tipo !== 'lista') return null;
+                return (
+                  <ResultadoFuente
+                    key={f.id}
+                    fuente={f}
+                    resp={e.resp}
+                    todas={todas}
+                    niveles={niveles}
+                    confirmadas={confirmadas}
+                    onAlternarConfirmacion={alternarConfirmacion}
+                  />
+                );
+              })}
+            </section>
+          )}
+        </div>
       </main>
 
       <footer className="pie">{T.pie}</footer>
