@@ -1,8 +1,12 @@
 import { Hono } from "hono";
-import type { Bindings } from "./env";
+import { rutasAnalizar } from "./rutas/analizar";
 import { rutasGasto } from "./rutas/gasto";
+import { conSesion, type Ambiente } from "./rutas/sesion";
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<Ambiente>();
+
+// Una sola sesión anónima por petición, para todas las rutas de la API
+app.use("/api/*", conSesion);
 
 // Estado del servicio
 app.get("/api/salud", (c) =>
@@ -10,6 +14,7 @@ app.get("/api/salud", (c) =>
 );
 
 app.route("/api", rutasGasto);
+app.route("/api", rutasAnalizar);
 
 // Errores: el detalle va al log, nunca a la respuesta
 app.onError((err, c) => {

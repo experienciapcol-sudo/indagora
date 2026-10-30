@@ -1,33 +1,14 @@
 // Rutas de F2: consulta del gasto y una llamada real mínima para comprobar el despliegue.
 // El texto que va a Meta es fijo y ficticio; el visitante no puede enviar contenido propio.
 import { Hono } from 'hono';
-import { getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
-import type { Bindings } from '../env';
 import { leerTopes, resumen, TopeAlcanzado } from '../gasto/gasto';
 import { dentroDelLimite } from '../gasto/limite';
 import { ErrorMeta, llamarMeta } from '../meta/cliente';
 import { definirSalida } from '../meta/esquema';
-
-const COOKIE = 'indagora_sesion';
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-
-type Ambiente = { Bindings: Bindings; Variables: { sesion: string } };
+import { ipDe, type Ambiente } from './sesion';
 
 export const rutasGasto = new Hono<Ambiente>();
-
-// Cada navegador recibe una sesión anónima; el tope por sesión se cuenta sobre ella.
-rutasGasto.use('*', async (c, next) => {
-  let sesion = getCookie(c, COOKIE);
-  if (!sesion || !UUID.test(sesion)) {
-    sesion = crypto.randomUUID();
-    // Secure solo en https: algunos navegadores descartan cookies Secure en http://localhost.
-    const secure = new URL(c.req.url).protocol === 'https:';
-    setCookie(c, COOKIE, sesion, { httpOnly: true, secure, sameSite: 'Lax', path: '/', maxAge: 60 * 60 * 24 });
-  }
-  c.set('sesion', sesion);
-  await next();
-});
 
 rutasGasto.get('/gasto', async (c) => {
   const g = await resumen(c.env.DB, c.get('sesion'));
@@ -48,9 +29,7 @@ const ORACION_FICTICIA = 'La entrega del lunes salió dos días tarde porque fal
 
 rutasGasto.post('/prueba', async (c) => {
   const sesion = c.get('sesion');
-  // La cookie de sesión se puede descartar; el límite por IP frena a quien la renueva en cada petición.
-  const ip = c.req.header('cf-connecting-ip') ?? 'sin-ip';
-  if (!(await dentroDelLimite(c.env.DB, ip, LIMITE_PRUEBA))) {
+  if (!(await dentroDelLimite(c.env.DB, ipDe(c), LIMITE_PRUEBA))) {
     return c.json({ error: 'Demasiadas llamadas seguidas; espera un minuto.' }, 429);
   }
   try {
