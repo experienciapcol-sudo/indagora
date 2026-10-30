@@ -31,7 +31,8 @@ const peticion = z.object({
         resumen: z.string().max(400),
       }),
     )
-    .max(MAX_PREVIAS),
+    // Cota del cuerpo; el analista manda al modelo solo las primeras MAX_PREVIAS.
+    .max(MAX_PREVIAS * 5),
 }) satisfies z.ZodType<PeticionAnalisis>;
 
 export const rutasAnalizar = new Hono<Ambiente>();

@@ -84,8 +84,9 @@ function pareceEtiqueta(e: string): boolean {
 }
 
 function esEntrevistador(etiqueta: string, fuente: FuenteEntrada): boolean {
-  if (fuente.entrevistador?.trim()) return normal(etiqueta) === normal(fuente.entrevistador);
-  return ENTREVISTADOR_COMUN.test(etiqueta.trim());
+  if (fuente.entrevistador?.trim() && normal(etiqueta) === normal(fuente.entrevistador)) return true;
+  // Aunque se indique otra etiqueta, Consultor/a o Entrevistador/a siempre pregunta, salvo que sea el rol entrevistado.
+  return ENTREVISTADOR_COMUN.test(etiqueta.trim()) && normal(etiqueta) !== normal(fuente.rol);
 }
 
 const normal = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');

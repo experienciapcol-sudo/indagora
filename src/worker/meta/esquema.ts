@@ -11,7 +11,8 @@ export interface Salida<T> {
 export function definirSalida<T>(nombre: string, esquema: z.ZodType<T>): Salida<T> {
   if (!/^[a-zA-Z0-9_-]{1,64}$/.test(nombre)) throw new Error(`Nombre de salida inválido: ${nombre}`);
   // `io: 'input'`: el esquema describe lo que produce la API, antes de cualquier transformación de Zod.
-  const js = z.toJSONSchema(esquema, { target: 'draft-2020-12', io: 'input' }) as Record<string, unknown>;
+  // `reused: 'ref'`: un esquema usado dos veces va una sola vez en $defs (cuida el límite de valores de enum).
+  const js = z.toJSONSchema(esquema, { target: 'draft-2020-12', io: 'input', reused: 'ref' }) as Record<string, unknown>;
   delete js.$schema;
   return { nombre, zod: esquema, jsonSchema: aEstricto(js, '') };
 }

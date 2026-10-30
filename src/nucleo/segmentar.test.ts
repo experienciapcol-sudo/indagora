@@ -78,6 +78,11 @@ describe('segmentar', () => {
     expect(r.turnos.map((t) => t.esEntrevistador)).toEqual([true, false, true, false]);
   });
 
+  it('reconoce a la consultora aunque la etiqueta indicada no coincida', () => {
+    const r = segmentar(fuente('Consultora: ¿Qué pasó?\nJefe de taller: Se atrasó.', { entrevistador: 'Consultor' }));
+    expect(r.turnos.map((t) => t.esEntrevistador)).toEqual([true, false]);
+  });
+
   it('une al turno anterior las líneas sin etiqueta', () => {
     const r = segmentar(fuente('Consultora: Cuénteme.\nJefe de taller: Pasa algo.\nY sigue pasando.'));
     expect(r.turnos).toHaveLength(2);

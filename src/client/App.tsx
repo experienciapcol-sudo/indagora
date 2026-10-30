@@ -11,7 +11,7 @@ import { PanelFuentes } from './PanelFuentes';
 import type { InfoCaso } from './PanelFuentes';
 import { Rechazos } from './Rechazos';
 import { ResultadoFuente } from './ResultadoFuente';
-import { afirmacionesListas, descargarJson, previasDe } from './sesion';
+import { afirmacionesListas, descargarJson, previasDe, sinReferenciasA } from './sesion';
 import type { EstadoFuente, EstadosPorFuente } from './sesion';
 import { TEXTOS } from './textos';
 
@@ -69,6 +69,7 @@ export default function App() {
   function quitarFuente(id: string) {
     setFuentes((previas) => previas.filter((f) => f.id !== id));
     fijarEstado(id, null);
+    reiniciarEstados(sinReferenciasA(estadosRef.current, id));
     setConfirmadas((previas) => new Set([...previas].filter((k) => !k.split('|').some((x) => x.startsWith(`${id}-`)))));
     if (fuentes.length <= 1) setCaso(null);
   }

@@ -116,4 +116,5 @@ function reconstruir(propias: Oracion[], indice: Map<string, number>): string {
     .join(' ');
 }
 
-const cifras = (s: string): string[] => s.match(/\d+(?:[.,]\d+)?/g) ?? [];
+// Coma o punto decimal da igual: 9,4 y 9.4 son la misma cifra.
+const cifras = (s: string): string[] => (s.match(/\d+(?:[.,]\d+)?/g) ?? []).map((c) => c.replace(',', '.'));

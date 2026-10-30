@@ -53,6 +53,10 @@ describe('nivel de una afirmación sola', () => {
     expect(nivel([af('E1-A02', { alertas: [{ tipo: 'generalizacion', marcador: 'nunca' }] })])).toEqual({ 'E1-A02': 2 });
   });
 
+  it('"todos" en un testimonio concreto no lo baja de N2', () => {
+    expect(nivel([af('E2-A01', { especificidad: [], alertas: [{ tipo: 'generalizacion', marcador: 'Todos' }] })])).toEqual({ 'E2-A01': 2 });
+  });
+
   it('registro documental con dato concreto: N4; sin dato: N1', () => {
     const doc = { tipoFuente: 'documento' as const, rol: 'Registro de recepciones' };
     expect(nivel([af('D1-A01', doc), af('D1-A02', { ...doc, especificidad: [] })])).toEqual({ 'D1-A01': 4, 'D1-A02': 1 });

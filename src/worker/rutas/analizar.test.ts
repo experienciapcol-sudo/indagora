@@ -43,7 +43,7 @@ function metaResponde() {
             finish_reason: 'stop',
             message: {
               content: JSON.stringify({
-                afirmaciones: [{ oraciones: [{ id: 'E1-002', ancla: 'esperamos el herraje nueve' }], resumen: 'Esperan el herraje.', tema: 'herraje', tipo: 'testimonio_especifico', primera_mano: true, rasgos: [] }],
+                afirmaciones: [{ oraciones: [{ id: 'E1-002', ancla: 'esperamos el herraje nueve' }], resumen: 'Esperan el herraje.', tema: 'herraje', tipo: 'testimonio_especifico', primera_mano: true, rasgos: [], corrobora: [], contradice: [] }],
               }),
             },
           },
@@ -78,6 +78,12 @@ describe('POST /api/analizar', () => {
       expect((await post(malo, env())).status).toBe(400);
     }
     expect(f).not.toHaveBeenCalled();
+  });
+
+  it('acepta más de 200 previas (el analista recorta)', async () => {
+    metaResponde();
+    const previas = Array.from({ length: 260 }, (_, i) => ({ id: `E3-A${String(i + 1).padStart(3, '0')}`, fuente: 'E3', rol: 'Compras', resumen: 'x' }));
+    expect((await post({ ...peticion, previas }, env())).status).toBe(200);
   });
 
   it('responde 400 si la fuente no tiene nada citable', async () => {

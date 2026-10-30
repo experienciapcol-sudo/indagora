@@ -2,9 +2,11 @@
 // oraciones (enum de ids reales) y un ancla literal; el verificador del núcleo decide qué
 // pasa. Las instrucciones fijas van primero para aprovechar la caché de prompts.
 import { z } from 'zod';
+import { CASO_TALLER } from '../../nucleo/casos/taller';
 import { segmentar } from '../../nucleo/segmentar';
 import type { Afirmacion, FuenteEntrada, Oracion, Previa, Rechazo, Turno } from '../../nucleo/tipos';
 import { verificar, type AfirmacionModelo } from '../../nucleo/verificar';
+import { sha256Hex } from '../hash';
 import { llamarMeta, type Dependencias, type Mensaje } from '../meta/cliente';
 import { definirSalida, type Salida } from '../meta/esquema';
 
@@ -39,7 +41,11 @@ export function salidaAnalista(citables: string[], previas: string[]): Salida<Sa
   // Sin previas no hay a qué apuntar: el esquema no pide corroboraciones (un enum vacío no es válido).
   const afirmacion =
     previas.length > 0
-      ? z.object({ ...base, corrobora: z.array(enumDe(previas)), contradice: z.array(enumDe(previas)) })
+      ? (() => {
+          // Un solo enum para las dos listas: definirSalida lo deja una vez en $defs.
+          const referencias = z.array(enumDe(previas));
+          return z.object({ ...base, corrobora: referencias, contradice: referencias });
+        })()
       : z.object(base).transform((a) => ({ ...a, corrobora: [] as string[], contradice: [] as string[] }));
   return definirSalida('analista', z.object({ afirmaciones: z.array(afirmacion) }) as unknown as z.ZodType<SalidaAnalista>);
 }
@@ -111,15 +117,21 @@ export async function analizarFuente(
     ),
     promptCacheKey: 'indagora-analista',
     clave: await claveGrabacion(e.fuente, previas),
-    grabar: true,
+    // Solo se graban los casos preparados (ficticios y acotados), nunca lo que pega un visitante.
+    grabar: esCasoPreparado(e.fuente),
   });
   const v = verificar(e.fuente, oraciones, r.datos.afirmaciones, previas);
   return { turnos, oraciones, ...v, modelo: r.modelo, costoUsd: r.costoUsd, ms: r.ms, demo: r.demo };
 }
 
+const CASOS_PREPARADOS = [CASO_TALLER];
+
+function esCasoPreparado(f: FuenteEntrada): boolean {
+  return CASOS_PREPARADOS.some((c) => c.fuentes.some((x) => JSON.stringify(x) === JSON.stringify(f)));
+}
+
 // Misma entrada, misma clave: DEMO_MODE reproduce la corrida grabada de esa fuente.
 async function claveGrabacion(fuente: FuenteEntrada, previas: Previa[]): Promise<string> {
   const texto = JSON.stringify({ v: VERSION_ANALISTA, fuente, previas });
-  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
-  return `analista:${[...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('')}`;
+  return `analista:${await sha256Hex(texto)}`;
 }

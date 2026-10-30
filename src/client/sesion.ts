@@ -40,6 +40,19 @@ export function afirmacionesListas(fuentes: readonly FuenteEntrada[], estados: E
   return salida;
 }
 
+// Al quitar una fuente, su id puede volver a usarse: las referencias que otras fuentes tenían
+// a sus afirmaciones se borran para que no apunten a las de la fuente nueva.
+export function sinReferenciasA(estados: EstadosPorFuente, fuenteId: string): EstadosPorFuente {
+  const ajena = (id: string) => !id.startsWith(`${fuenteId}-`);
+  return Object.fromEntries(
+    Object.entries(estados).map(([id, e]) => {
+      if (e.tipo !== 'lista') return [id, e];
+      const afirmaciones = e.resp.afirmaciones.map((a) => ({ ...a, corrobora: a.corrobora.filter(ajena), contradice: a.contradice.filter(ajena) }));
+      return [id, { ...e, resp: { ...e.resp, afirmaciones } }];
+    }),
+  );
+}
+
 // Claves de par que involucran a una afirmación, ya sean pendientes o confirmadas.
 export function clavesDe(id: string, calculado: NivelCalculado | undefined, confirmadas: ReadonlySet<string>): string[] {
   const claves = new Set<string>(calculado?.pendientes ?? []);

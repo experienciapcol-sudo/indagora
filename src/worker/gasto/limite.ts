@@ -1,5 +1,6 @@
 // Límite de llamadas por cliente en D1. Va además de los topes de gasto: la cookie de sesión
 // se puede descartar, pero la IP no cambia en cada petición. Se guarda un hash, no la IP.
+import { sha256Hex } from '../hash';
 
 export interface Limite {
   llamadas: number;
@@ -8,7 +9,7 @@ export interface Limite {
 
 export async function dentroDelLimite(db: D1Database, cliente: string, l: Limite, ahoraMs = Date.now()): Promise<boolean> {
   const ventana = Math.floor(ahoraMs / 1000 / l.periodoS);
-  const clave = await hash(cliente);
+  const clave = await sha256Hex(`indagora:${cliente}`);
   const [fila] = await db.batch<{ n: number }>([
     db
       .prepare(
@@ -22,9 +23,4 @@ export async function dentroDelLimite(db: D1Database, cliente: string, l: Limite
   ]);
   const n = fila.results[0]?.n;
   return typeof n === 'number' && n <= l.llamadas;
-}
-
-async function hash(texto: string): Promise<string> {
-  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`indagora:${texto}`));
-  return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }

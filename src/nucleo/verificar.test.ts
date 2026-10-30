@@ -125,6 +125,12 @@ describe('verificar', () => {
     expect(r.rechazos.map((x) => x.motivo)).toEqual(['cifra_sin_origen']);
   });
 
+  it('no confunde coma y punto decimal al revisar las cifras', () => {
+    const conDecimal = { ...fuente, texto: fuente.texto.replace('nueve días', '9.4 días') };
+    const r = verificar(conDecimal, segmentar(conDecimal).oraciones, [af({ oraciones: [{ id: 'E2-002', ancla: 'esperamos el herraje 9.4' }], resumen: 'Tarda 9,4 días.' })], previas);
+    expect(r.rechazos).toEqual([]);
+  });
+
   it('agrega las alertas del léxico sobre la cita', () => {
     const r = verificar(fuente, oraciones, [af({ oraciones: [{ id: 'E2-006', ancla: 'dicen que el taller' }], tipo: 'opinion', resumen: 'Se dice que el taller es flojo.' })], previas);
     expect(r.afirmaciones[0].alertas.map((a) => a.tipo)).toEqual(['de_oidas']);

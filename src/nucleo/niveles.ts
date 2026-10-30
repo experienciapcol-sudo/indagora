@@ -28,7 +28,8 @@ export function nivelBase(a: Afirmacion): { nivel: Nivel; razones: string[] } {
     return { nivel: 1, razones: [oidas ? `de oídas ("${oidas.marcador}"): lo sabe por otros` : 'de oídas: no lo vivió de primera mano'] };
   }
   if (a.tipo === 'opinion') return { nivel: 1, razones: ['opinión: juicio general sin hechos narrados'] };
-  const generaliza = a.alertas.find((x) => x.tipo === 'generalizacion');
+  // "todos" y "todas" aparecen en testimonios concretos ("todos los closets esperan el herraje"): no bajan el nivel.
+  const generaliza = a.alertas.find((x) => x.tipo === 'generalizacion' && !/^tod[oa]s$/i.test(x.marcador));
   if (generaliza && a.especificidad.length === 0) {
     return { nivel: 1, razones: [`generaliza ("${generaliza.marcador}") sin un dato concreto (cuándo, cuánto)`] };
   }

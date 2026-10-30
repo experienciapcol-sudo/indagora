@@ -4,7 +4,8 @@ import { segmentar } from '../../nucleo/segmentar';
 import type { FuenteEntrada, Previa } from '../../nucleo/tipos';
 import { d1Falsa } from '../gasto/d1-falsa';
 import type { VarsMeta } from '../meta/cliente';
-import { analizarFuente, ErrorAnalisis, MAX_CITABLES, mensajesAnalista, salidaAnalista } from './analista';
+import { CASO_TALLER } from '../../nucleo/casos/taller';
+import { analizarFuente, ErrorAnalisis, MAX_CITABLES, MAX_PREVIAS, mensajesAnalista, salidaAnalista } from './analista';
 
 const fuente: FuenteEntrada = {
   id: 'E2',
@@ -24,6 +25,11 @@ describe('salidaAnalista', () => {
     expect(texto).toContain('"enum":["E2-002","E2-003"]');
     expect(texto).toContain('"enum":["E3-A01"]');
     expect(texto).not.toContain('E2-001');
+  });
+
+  it('el enum de previas aparece una sola vez aunque lo usen corrobora y contradice', () => {
+    const texto = JSON.stringify(salidaAnalista(['E2-002'], ['E3-A01', 'E3-A02']).jsonSchema);
+    expect(texto.split('"E3-A02"')).toHaveLength(2);
   });
 
   it('sin previas, el esquema no pide corroboraciones y la salida las trae vacías', () => {
@@ -97,11 +103,24 @@ describe('analizarFuente', () => {
     expect(cuerpos).toHaveLength(0);
   });
 
-  it('usa una clave de grabación estable para la misma entrada', async () => {
+  it('graba solo las fuentes del caso preparado y DEMO_MODE las reproduce', async () => {
     const db = d1Falsa();
-    const contenido = { afirmaciones: [] };
-    await analizarFuente({ env, db, fetch: respuestaModelo(contenido).f }, { sesion: 's1', fuente, previas });
-    const demo = await analizarFuente({ env: { ...env, DEMO_MODE: 'true' }, db }, { sesion: 's2', fuente, previas });
+    const caso = CASO_TALLER.fuentes[0];
+    await analizarFuente({ env, db, fetch: respuestaModelo({ afirmaciones: [] }).f }, { sesion: 's1', fuente: caso, previas: [] });
+    const demo = await analizarFuente({ env: { ...env, DEMO_MODE: 'true' }, db }, { sesion: 's2', fuente: caso, previas: [] });
     expect(demo.demo).toBe(true);
+  });
+
+  it('no graba lo que pega un visitante', async () => {
+    const db = d1Falsa();
+    await analizarFuente({ env, db, fetch: respuestaModelo({ afirmaciones: [] }).f }, { sesion: 's1', fuente, previas });
+    expect(await db.prepare('SELECT COUNT(*) AS n FROM grabaciones').first<{ n: number }>()).toEqual({ n: 0 });
+  });
+
+  it('manda a lo más MAX_PREVIAS afirmaciones previas al modelo', async () => {
+    const { f, cuerpos } = respuestaModelo({ afirmaciones: [] });
+    const muchas = Array.from({ length: MAX_PREVIAS + 5 }, (_, i) => ({ id: `E3-A${String(i + 1).padStart(3, '0')}`, fuente: 'E3', rol: 'Compras', resumen: 'x' }));
+    await analizarFuente({ env, db: d1Falsa(), fetch: f }, { sesion: 's1', fuente, previas: muchas });
+    expect(cuerpos[0].messages[1].content.split('\n').filter((l: string) => l.startsWith('E3-A'))).toHaveLength(MAX_PREVIAS);
   });
 });
