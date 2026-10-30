@@ -94,7 +94,7 @@ export function verificar(
 }
 
 // Minúsculas, sin acentos ni puntuación, con espacios simples.
-const normal = (s: string) =>
+export const normal = (s: string) =>
   s
     .toLowerCase()
     .normalize('NFD')
