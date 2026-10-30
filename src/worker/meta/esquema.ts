@@ -52,3 +52,8 @@ function aEstricto(nodo: Nodo, ruta: string): Nodo {
   }
   return salida;
 }
+
+// Enum de ids reales para los punteros del modelo. Un enum no puede ir vacío: con `relleno`,
+// si no hay ids va ese valor, y el código que recibe la salida lo descarta.
+export const enumDe = (ids: readonly string[], relleno?: string) =>
+  z.enum((ids.length > 0 || relleno === undefined ? [...ids] : [relleno]) as [string, ...string[]]);

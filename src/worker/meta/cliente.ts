@@ -34,8 +34,9 @@ export interface Peticion<T> {
   maxTokens?: number;
   promptCacheKey?: string;
   // Clave de grabación: en DEMO_MODE se reproduce; fuera de él, con `grabar`, se guarda.
+  // `{ caso }`: se aparta para ese caso del agente y se publica solo si el caso termina bien.
   clave?: string;
-  grabar?: boolean;
+  grabar?: boolean | { caso: string };
 }
 
 export interface Uso {
@@ -117,7 +118,7 @@ export async function llamarMeta<T>(deps: Dependencias, p: Peticion<T>): Promise
     }
     const r = await intentar(id, intento);
     if (r.ok) {
-      if (p.grabar && p.clave) await grabar(deps.db, p.clave, modelo, r.datos);
+      if (p.grabar && p.clave) await grabar(deps.db, p.clave, modelo, r.datos, p.grabar === true ? null : p.grabar.caso);
       return { datos: r.datos, modelo, costoUsd: r.costoUsd, uso: r.uso, ms: r.ms, intentos: n, demo: false };
     }
     ultimo = r.error;
@@ -243,12 +244,21 @@ async function reproducir<T>(db: D1Database, p: Peticion<T>, modelo: string): Pr
 }
 
 // Solo graba la primera vez: una grabación elegida no se pisa con cada llamada. Para regrabar,
-// se borra la fila antes.
-async function grabar(db: D1Database, clave: string, modelo: string, datos: unknown): Promise<void> {
-  await db
-    .prepare('INSERT OR IGNORE INTO grabaciones (clave, modelo, datos) VALUES (?1, ?2, ?3)')
-    .bind(clave, modelo, JSON.stringify(datos))
-    .run();
+// se borra la fila antes. Con `caso`, se aparta para ese caso (ver publicarGrabaciones).
+async function grabar(db: D1Database, clave: string, modelo: string, datos: unknown, caso: string | null): Promise<void> {
+  const sql = caso
+    ? db.prepare('INSERT OR REPLACE INTO grabaciones_caso (caso, clave, modelo, datos) VALUES (?4, ?1, ?2, ?3)')
+    : db.prepare('INSERT OR IGNORE INTO grabaciones (clave, modelo, datos) VALUES (?1, ?2, ?3)');
+  await sql.bind(clave, modelo, JSON.stringify(datos), ...(caso ? [caso] : [])).run();
+}
+
+// Publica de una vez las grabaciones apartadas de un caso que terminó bien: reemplazan a las de
+// corridas anteriores con las mismas claves, así la cadena que reproduce DEMO_MODE es de una sola corrida.
+export async function publicarGrabaciones(db: D1Database, caso: string): Promise<void> {
+  await db.batch([
+    db.prepare('INSERT OR REPLACE INTO grabaciones (clave, modelo, datos) SELECT clave, modelo, datos FROM grabaciones_caso WHERE caso = ?1').bind(caso),
+    db.prepare('DELETE FROM grabaciones_caso WHERE caso = ?1').bind(caso),
+  ]);
 }
 
 function leerJson(texto: string): unknown {

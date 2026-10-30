@@ -12,16 +12,18 @@ import { ipDe, type Ambiente } from './sesion';
 const LIMITE = { llamadas: 10, periodoS: 60 };
 const ID_FUENTE = /^[ED]\d{1,2}$/;
 
+export const fuenteZ = z.object({
+  id: z.string().regex(ID_FUENTE),
+  tipo: z.enum(['entrevista', 'documento']),
+  rol: z.string().trim().min(1).max(80),
+  modalidad: z.enum(['transcripcion', 'notas']),
+  titulo: z.string().max(120),
+  entrevistador: z.string().trim().max(40).nullable(),
+  texto: z.string().trim().min(1).max(60_000),
+});
+
 const peticion = z.object({
-  fuente: z.object({
-    id: z.string().regex(ID_FUENTE),
-    tipo: z.enum(['entrevista', 'documento']),
-    rol: z.string().trim().min(1).max(80),
-    modalidad: z.enum(['transcripcion', 'notas']),
-    titulo: z.string().max(120),
-    entrevistador: z.string().trim().max(40).nullable(),
-    texto: z.string().trim().min(1).max(60_000),
-  }),
+  fuente: fuenteZ,
   previas: z
     .array(
       z.object({

@@ -8,7 +8,7 @@ import type { Afirmacion, FuenteEntrada, Oracion, Previa, Rechazo, Turno } from 
 import { verificar, type AfirmacionModelo } from '../../nucleo/verificar';
 import { sha256Hex } from '../hash';
 import { llamarMeta, type Dependencias, type Mensaje } from '../meta/cliente';
-import { definirSalida, type Salida } from '../meta/esquema';
+import { definirSalida, enumDe, type Salida } from '../meta/esquema';
 
 // Cambiarla invalida las grabaciones de DEMO_MODE hechas con instrucciones anteriores.
 export const VERSION_ANALISTA = 1;
@@ -27,7 +27,6 @@ export class ErrorAnalisis extends Error {
 
 type SalidaAnalista = { afirmaciones: AfirmacionModelo[] };
 
-const enumDe = (ids: string[]) => z.enum(ids as [string, ...string[]]);
 
 export function salidaAnalista(citables: string[], previas: string[]): Salida<SalidaAnalista> {
   const base = {
@@ -96,7 +95,8 @@ export interface ResultadoAnalisis {
 
 export async function analizarFuente(
   deps: Dependencias,
-  e: { sesion: string; fuente: FuenteEntrada; previas: Previa[] },
+  // `caso`: id del caso del agente que la pide, si la pide el agente.
+  e: { sesion: string; fuente: FuenteEntrada; previas: Previa[]; caso?: string },
 ): Promise<ResultadoAnalisis> {
   const { turnos, oraciones } = segmentar(e.fuente);
   const citables = oraciones.filter((o) => !o.esEntrevistador).map((o) => o.id);
@@ -116,9 +116,10 @@ export async function analizarFuente(
       previas.map((p) => p.id),
     ),
     promptCacheKey: 'indagora-analista',
-    clave: await claveGrabacion(e.fuente, previas),
+    // Dentro del agente la clave lleva otro prefijo: su cadena de grabaciones no se mezcla con la de /api/analizar.
+    clave: `${e.caso ? 'agente-' : ''}${await claveGrabacion(e.fuente, previas)}`,
     // Solo se graban los casos preparados (ficticios y acotados), nunca lo que pega un visitante.
-    grabar: esCasoPreparado(e.fuente),
+    grabar: esCasoPreparado(e.fuente) && (e.caso ? { caso: e.caso } : true),
   });
   const v = verificar(e.fuente, oraciones, r.datos.afirmaciones, previas);
   return { turnos, oraciones, ...v, modelo: r.modelo, costoUsd: r.costoUsd, ms: r.ms, demo: r.demo };
@@ -126,7 +127,7 @@ export async function analizarFuente(
 
 const CASOS_PREPARADOS = [CASO_TALLER];
 
-function esCasoPreparado(f: FuenteEntrada): boolean {
+export function esCasoPreparado(f: FuenteEntrada): boolean {
   return CASOS_PREPARADOS.some((c) => c.fuentes.some((x) => JSON.stringify(x) === JSON.stringify(f)));
 }
 
