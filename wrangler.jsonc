@@ -28,7 +28,7 @@
     "MODEL_AGENT_CONTRIBUTOR": "muse-spark-1.3-contributor",
     "MODEL_TRANSCRIBE": "muse-voice-transcribe-1.0",
     "DEMO_MODE": "false",
-    "TOPE_SESION_USD": "0.25",
+    "TOPE_SESION_USD": "0.60",
     "TOPE_GLOBAL_USD": "5"
   }
 }
