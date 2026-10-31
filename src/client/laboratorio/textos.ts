@@ -1,5 +1,8 @@
-// Textos visibles del Laboratorio, la voz y los hablantes. Español llano.
-export const TEXTOS_LAB = {
+// Textos visibles del Laboratorio, la voz y los hablantes.
+import { idioma } from '../idioma';
+import { TEXTOS_LAB_EN } from './textos.en';
+
+export const TEXTOS_LAB_ES = {
   titulo: 'Laboratorio',
   avisoFicticio: 'Laboratorio: empresa ficticia generada para practicar; nadie aquí es una persona real.',
   avisoGrabado: 'Se alcanzó el tope de gasto: estás viendo una corrida grabada, sin costo.',
@@ -127,6 +130,8 @@ export const TEXTOS_LAB = {
     generico: (m: string) => (m ? `Algo falló: ${m}` : 'Algo falló. Vuelve a intentarlo.'),
     sinConexion: 'Sin conexión con el servidor.',
   },
-} as const;
+};
 
-export type TextosLab = typeof TEXTOS_LAB;
+export type TextosLab = typeof TEXTOS_LAB_ES;
+
+export const TEXTOS_LAB: TextosLab = idioma === 'en' ? TEXTOS_LAB_EN : TEXTOS_LAB_ES;

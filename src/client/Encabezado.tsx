@@ -1,6 +1,7 @@
 import type { Gasto, Salud } from './api';
 import { formatoUsd } from './sesion';
 import { TEXTOS } from './textos';
+import { cambiarIdioma, idioma } from './idioma';
 
 export type EstadoServicio = { tipo: 'cargando' } | { tipo: 'ok'; salud: Salud } | { tipo: 'error' };
 
@@ -31,6 +32,27 @@ export function Encabezado({ servicio, gasto }: Props) {
       </div>
 
       <div className="encabezado__estado">
+        <div role="group" aria-label="Idioma / Language">
+          <button
+            type="button"
+            className="boton boton--secundario"
+            aria-pressed={idioma === 'es'}
+            disabled={idioma === 'es'}
+            onClick={() => cambiarIdioma('es')}
+          >
+            ES
+          </button>{' '}
+          <button
+            type="button"
+            className="boton boton--secundario"
+            aria-pressed={idioma === 'en'}
+            disabled={idioma === 'en'}
+            onClick={() => cambiarIdioma('en')}
+          >
+            EN
+          </button>
+        </div>
+
         <p className={clase} role="status" aria-label={`${T.servicio.etiqueta}: ${etiqueta}`}>
           <span className="sello__punto" aria-hidden="true" />
           {etiqueta}

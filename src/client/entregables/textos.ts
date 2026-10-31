@@ -1,8 +1,10 @@
 // Textos visibles de los entregables F5. En español, mismo registro que el resto de la interfaz.
 import type { Carril, Cuadrante, MotivoSinPareto } from '../../nucleo/entregables/tipos';
 import type { ItemGuia, PasoPDSA } from '../../nucleo/entregables/tipos';
+import { idioma } from '../idioma';
+import { TEXTOS_ENTREGABLES_EN } from './textos.en';
 
-export const TEXTOS_ENTREGABLES = {
+export const TEXTOS_ENTREGABLES_ES = {
   titulo: 'Entregables del diagnóstico',
   ayuda:
     'Plan de verificación, plan de intervención, indicadores, concentración de causas, guía de la siguiente entrevista e informe. Las prioridades y el Pareto los calcula el código; cada elemento apunta a su evidencia.',
@@ -121,3 +123,8 @@ export const TEXTOS_ENTREGABLES = {
     vacio: 'Aún no hay informe: genera primero los entregables.',
   },
 };
+
+export type TextosEntregables = typeof TEXTOS_ENTREGABLES_ES;
+
+export const TEXTOS_ENTREGABLES: TextosEntregables =
+  idioma === 'en' ? TEXTOS_ENTREGABLES_EN : TEXTOS_ENTREGABLES_ES;

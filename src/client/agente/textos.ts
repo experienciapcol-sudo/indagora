@@ -14,10 +14,12 @@ import type {
   Veredicto,
 } from '../../nucleo/agente/tipos';
 import { TEXTOS } from '../textos';
+import { idioma } from '../idioma';
+import { TEXTOS_AGENTE_EN } from './textos.en';
 
 const plural = (n: number, uno: string, varios: string) => (n === 1 ? uno : varios);
 
-export const TEXTOS_AGENTE = {
+export const TEXTOS_AGENTE_ES = {
   pestanas: { agente: 'Agente', evidencia: 'Evidencia', etiqueta: 'Vistas de la herramienta' },
 
   titulo: 'Agente de diagnóstico',
@@ -310,4 +312,6 @@ export const TEXTOS_AGENTE = {
   },
 };
 
-export type TextosAgente = typeof TEXTOS_AGENTE;
+export type TextosAgente = typeof TEXTOS_AGENTE_ES;
+
+export const TEXTOS_AGENTE: TextosAgente = idioma === 'en' ? TEXTOS_AGENTE_EN : TEXTOS_AGENTE_ES;

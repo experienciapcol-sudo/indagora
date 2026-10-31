@@ -2,10 +2,12 @@
 // convierte en un diccionario por idioma; las funciones reciben los valores a insertar.
 
 import type { MotivoRechazo, Modalidad, TipoAlerta, TipoFuente, Rasgo } from '../nucleo/tipos';
+import { idioma } from './idioma';
+import { TEXTOS_EN } from './textos.en';
 
 const plural = (n: number, uno: string, varios: string) => (n === 1 ? uno : varios);
 
-export const TEXTOS = {
+export const TEXTOS_ES = {
   marca: 'Indagora',
   subtitulo: 'diagnóstico organizacional basado en evidencia',
 
@@ -167,4 +169,6 @@ export const TEXTOS = {
   pie: 'Solo datos ficticios. Los niveles son un cálculo del código sobre las citas, no un dictamen.',
 };
 
-export type Textos = typeof TEXTOS;
+export type Textos = typeof TEXTOS_ES;
+
+export const TEXTOS: Textos = idioma === 'en' ? TEXTOS_EN : TEXTOS_ES;
