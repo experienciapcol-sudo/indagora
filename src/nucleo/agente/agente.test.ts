@@ -154,10 +154,13 @@ describe('aplicar salidas del modelo', () => {
       { casilla: 'estructura', estado: 'brecha', hallazgo: c('Compras decide sola') },
       { casilla: 'liderazgo', estado: 'brecha', hallazgo: c('La dueña culpa al taller', 'E1-A01') },
     ]);
-    expect(weisbord.map((h) => [h.id, h.estado])).toEqual([
+    // Siempre salen las seis casillas; las omitidas quedan sin datos.
+    expect(weisbord).toHaveLength(6);
+    expect(weisbord.slice(0, 2).map((h) => [h.id, h.estado])).toEqual([
       ['W-estructura', 'sin_datos'],
       ['W-liderazgo', 'brecha'],
     ]);
+    expect(weisbord.slice(2).every((h) => h.estado === 'sin_datos' && h.hallazgo.texto === '')).toBe(true);
     expect(rechazos[0].motivo).toBe('casilla_sin_evidencia');
   });
 
@@ -173,6 +176,22 @@ describe('aplicar salidas del modelo', () => {
     const { juicios, rechazos } = aplicarJuicios(e, [{ causa: 'C2', fila: 'R1', veredicto: 'explica', razon: 'porque sí', evidencia: [] }], ['R1']);
     expect(juicios[0].veredicto).toBe('sin_datos');
     expect(rechazos[0].motivo).toBe('juicio_sin_evidencia');
+  });
+
+  it('una contradicción gana a una corroboración del mismo par', () => {
+    const e = base();
+    const { afirmaciones, rechazos } = aplicarRelaciones(
+      e.afirmaciones,
+      [
+        { a: 'E2-A02', b: 'D1-A01', tipo: 'corrobora' },
+        { a: 'D1-A01', b: 'E2-A02', tipo: 'contradice' },
+      ],
+      new Set(['E2-A02']),
+    );
+    const por = new Map(afirmaciones.map((a) => [a.id, a]));
+    expect(por.get('E2-A02')!.corrobora).toEqual([]);
+    expect(por.get('D1-A01')!.contradice).toEqual(['E2-A02']);
+    expect(rechazos.map((x) => x.motivo)).toEqual(['relacion_invalida']);
   });
 
   it('corroboraciones: rechaza la misma fuente y no duplica pares', () => {
@@ -290,6 +309,14 @@ describe('guardas', () => {
     expect(revisar(e, decision('generar_causas'))).toMatchObject({ ok: false, motivo: 'repetida' });
     e.hechas[0].leidas = 2;
     expect(revisar(e, decision('generar_causas'))).toEqual({ ok: true });
+  });
+
+  it('una especificación vacía no deja generar causas', () => {
+    const e = base();
+    e.desviacion = aplicarDesviacion(e, desviacion()).desviacion;
+    e.seleccion = seleccionar(e.desviacion);
+    e.esNoEs = [];
+    expect(revisar(e, decision('generar_causas'))).toMatchObject({ ok: false, motivo: 'fase_previa' });
   });
 
   it('no deja leer una fuente ya leída ni una que no existe', () => {

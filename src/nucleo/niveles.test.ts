@@ -34,6 +34,19 @@ describe('nivel de una afirmación sola', () => {
     expect(nivel([af('E2-A01')])).toEqual({ 'E2-A01': 2 });
   });
 
+  it('apuntes del consultor no pasan de N2, ni corroborados y confirmados', () => {
+    const notas = af('E2-A01', { modalidad: 'notas', corrobora: ['E3-A01'] });
+    const otro = af('E3-A01', { rol: 'Encargada de compras' });
+    expect(nivel([notas, otro], [clavePar('E2-A01', 'E3-A01')])['E2-A01']).toBe(2);
+  });
+
+  it('un documento con un dicho de oídas o con apuntes no llega a N4', () => {
+    const oidas = af('D1-A01', { tipoFuente: 'documento', alertas: [{ tipo: 'de_oidas', marcador: 'dicen que' }] });
+    const apuntes = af('D1-A02', { tipoFuente: 'documento', modalidad: 'notas' });
+    const registro = af('D1-A03', { tipoFuente: 'documento' });
+    expect(nivel([oidas, apuntes, registro])).toEqual({ 'D1-A01': 1, 'D1-A02': 2, 'D1-A03': 4 });
+  });
+
   it('opinión: N1', () => {
     expect(nivel([af('E1-A01', { tipo: 'opinion', especificidad: [] })])).toEqual({ 'E1-A01': 1 });
   });

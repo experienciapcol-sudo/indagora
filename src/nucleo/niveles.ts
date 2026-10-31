@@ -19,6 +19,12 @@ const normalRol = (r: string) => r.trim().toLowerCase().replace(/\s+/g, ' ');
 
 export function nivelBase(a: Afirmacion): { nivel: Nivel; razones: string[] } {
   if (a.tipoFuente === 'documento') {
+    // Un "documento" con apuntes del consultor o con un dicho de oídas no es un registro.
+    const dicho = a.alertas.find((x) => x.tipo === 'de_oidas');
+    if (dicho) return { nivel: 1, razones: [`documento con un dicho de oídas ("${dicho.marcador}")`] };
+    if (a.modalidad === 'notas' && a.tipo === 'testimonio_especifico' && a.especificidad.length > 0) {
+      return { nivel: 2, razones: ['apuntes del consultor sobre un documento, no literales: máximo N2'] };
+    }
     return a.tipo === 'testimonio_especifico' && a.especificidad.length > 0
       ? { nivel: 4, razones: [`registro documental con dato concreto (${a.especificidad.join(', ')})`] }
       : { nivel: 1, razones: ['documento sin un dato concreto'] };
@@ -53,7 +59,8 @@ export function calcularNiveles(afirmaciones: readonly Afirmacion[], confirmadas
     const nb = base.get(b.id)!.nivel;
     // Sube solo el testimonio N2 de entrevista; a qué nivel, según la otra fuente.
     const destino = (x: Afirmacion, nx: Nivel, y: Afirmacion, ny: Nivel): Nivel | null => {
-      if (x.tipoFuente !== 'entrevista' || nx !== 2) return null;
+      // Las notas del consultor no son literales: nunca pasan de N2, ni siquiera corroboradas.
+      if (x.tipoFuente !== 'entrevista' || x.modalidad === 'notas' || nx !== 2) return null;
       if (y.tipoFuente === 'documento') return ny === 4 ? 4 : null;
       return ny === 2 && x.fuente !== y.fuente && normalRol(x.rol) !== normalRol(y.rol) ? 3 : null;
     };

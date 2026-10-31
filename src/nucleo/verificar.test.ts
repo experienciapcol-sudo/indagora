@@ -114,7 +114,8 @@ describe('verificar', () => {
 
   it('quita referencias a afirmaciones desconocidas o de la misma fuente', () => {
     const r = verificar(fuente, oraciones, [af({ corrobora: ['E3-A01', 'E9-A01', 'E2-A09'], contradice: ['E3-A01', 'E3-A01'] })], previas);
-    expect(r.afirmaciones[0].corrobora).toEqual(['E3-A01']);
+    // El mismo id en las dos listas: gana la contradicción.
+    expect(r.afirmaciones[0].corrobora).toEqual([]);
     expect(r.afirmaciones[0].contradice).toEqual(['E3-A01']);
     expect(r.rechazos.map((x) => x.motivo)).toEqual(['referencia_invalida', 'referencia_invalida']);
   });

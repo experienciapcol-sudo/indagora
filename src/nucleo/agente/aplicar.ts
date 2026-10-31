@@ -2,6 +2,7 @@
 // ninguna casilla se llena sin afirmaciones verificadas, ningún juicio de la prueba de causas
 // cuenta sin evidencia y ninguna causa entra sin mostrar que el hecho ocurrió.
 import type { Afirmacion } from '../tipos';
+import { CASILLAS_WEISBORD } from './tipos';
 import type {
   Ambito,
   Casilla,
@@ -144,6 +145,10 @@ export function aplicarWeisbord(e: EstadoAgente, hallazgos: HallazgoModelo[]): {
     const hallazgo = r.casilla(h.hallazgo, `Weisbord, ${h.casilla}`);
     salida.push({ id: `W-${h.casilla}`, casilla: h.casilla, estado: hallazgo.texto ? h.estado : 'sin_datos', hallazgo });
   }
+  // El barrido cubre las seis casillas: las que el modelo omitió quedan sin datos, no sin hacer.
+  for (const casilla of CASILLAS_WEISBORD) {
+    if (!vistas.has(casilla)) salida.push({ id: `W-${casilla}`, casilla, estado: 'sin_datos', hallazgo: { texto: '', evidencia: [] } });
+  }
   return { weisbord: salida, rechazos: r.rechazos };
 }
 
@@ -203,8 +208,15 @@ export function aplicarRelaciones(afirmaciones: readonly Afirmacion[], relacione
       continue;
     }
     if (!nuevas.has(a.id) && !nuevas.has(b.id)) continue;
-    const ya = a.corrobora.includes(b.id) || b.corrobora.includes(a.id) || a.contradice.includes(b.id) || b.contradice.includes(a.id);
-    if (ya) continue;
+    const corrobora = a.corrobora.includes(b.id) || b.corrobora.includes(a.id);
+    const contradice = a.contradice.includes(b.id) || b.contradice.includes(a.id);
+    if (contradice || (rel.tipo === 'corrobora' && corrobora)) continue;
+    if (rel.tipo === 'contradice' && corrobora) {
+      // Ante la duda gana la contradicción: nunca queda sostenida una corroboración discutida.
+      a.corrobora = a.corrobora.filter((x) => x !== b.id);
+      b.corrobora = b.corrobora.filter((x) => x !== a.id);
+      r.rechazar('relacion_invalida', `${a.id} y ${b.id} salen como corroboración y como contradicción: queda como contradicción`);
+    }
     a[rel.tipo].push(b.id);
     aplicadas += 1;
   }

@@ -76,7 +76,9 @@ const ESPERA_MAXIMA_MS = 5_000;
 
 // Retry-After en segundos; null si pide esperar más que ESPERA_MAXIMA_MS.
 export function esperaDe(retryAfter: string | null): number | null {
-  const segundos = retryAfter === null ? Number.NaN : Number(retryAfter);
+  // Segundos o fecha HTTP (ambas son válidas).
+  const esFecha = retryAfter !== null && Number.isNaN(Number(retryAfter)) && !Number.isNaN(Date.parse(retryAfter));
+  const segundos = retryAfter === null ? Number.NaN : esFecha ? (Date.parse(retryAfter) - Date.now()) / 1000 : Number(retryAfter);
   if (!Number.isFinite(segundos) || segundos < 0) return ESPERA_REINTENTO_MS;
   const ms = segundos * 1000;
   return ms > ESPERA_MAXIMA_MS ? null : Math.max(ESPERA_REINTENTO_MS, ms);
@@ -118,7 +120,8 @@ export async function llamarMeta<T>(deps: Dependencias, p: Peticion<T>): Promise
     }
     const r = await intentar(id, intento);
     if (r.ok) {
-      if (p.grabar && p.clave) await grabar(deps.db, p.clave, modelo, r.datos, p.grabar === true ? null : p.grabar.caso);
+      // La grabación es de mejor esfuerzo: si D1 falla, la respuesta ya pagada no se pierde.
+      if (p.grabar && p.clave) await grabar(deps.db, p.clave, modelo, r.datos, p.grabar === true ? null : p.grabar.caso).catch(() => undefined);
       return { datos: r.datos, modelo, costoUsd: r.costoUsd, uso: r.uso, ms: r.ms, intentos: n, demo: false };
     }
     ultimo = r.error;

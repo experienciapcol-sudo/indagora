@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { d1Falsa } from '../gasto/d1-falsa';
 import { resumen, TopeAlcanzado } from '../gasto/gasto';
-import { costoDe, ErrorMeta, estimarCosto, leerUso, llamarMeta, type Peticion, type VarsMeta } from './cliente';
+import { costoDe, ErrorMeta, esperaDe, estimarCosto, leerUso, llamarMeta, type Peticion, type VarsMeta } from './cliente';
 import { definirSalida } from './esquema';
 import { MODELOS_POR_OMISION } from '../../config/models';
 
@@ -168,5 +168,15 @@ describe('cuentas', () => {
   it('la estimación siempre supera el costo con la salida completa', () => {
     const p = { entrada: 1.25, cache: 0.15, salida: 4.25 };
     expect(estimarCosto(p, 3000, 500)).toBeGreaterThanOrEqual(costoDe(p, { entrada: 1000, cache: 0, salida: 500, razonamiento: null }));
+  });
+});
+
+describe('esperaDe', () => {
+  it('acepta segundos y fecha HTTP; si pide esperar de más, no reintenta', () => {
+    expect(esperaDe('2')).toBe(2000);
+    expect(esperaDe('600')).toBeNull();
+    expect(esperaDe(new Date(Date.now() + 3_600_000).toUTCString())).toBeNull();
+    expect(esperaDe(null)).toBe(800);
+    expect(esperaDe('no es una fecha')).toBe(800);
   });
 });

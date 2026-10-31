@@ -18,13 +18,13 @@ import {
   type RechazoEvidencia,
   type RelacionModelo,
 } from '../../nucleo/agente/aplicar';
-import { filasDePrueba } from '../../nucleo/agente/criterio';
-import { invalidarDesde } from '../../nucleo/agente/estado';
+import { evaluarCausas, filasDePrueba } from '../../nucleo/agente/criterio';
+import { invalidarDesde, nivelesDe } from '../../nucleo/agente/estado';
 import { seleccionar } from '../../nucleo/agente/seleccion';
 import { ACCIONES, CASILLAS_WEISBORD, type Accion, DIMENSIONES, ESPINAS_6M, type CausaEvaluada, type Decision, type EstadoAgente, type EstadoCriterio, type OrigenRechazo } from '../../nucleo/agente/tipos';
 import { calcularNiveles } from '../../nucleo/niveles';
 import type { NivelCalculado, Rechazo } from '../../nucleo/tipos';
-import { analizarFuente, esCasoPreparado } from '../analista/analista';
+import { ErrorAnalisis, analizarFuente, esCasoPreparado } from '../analista/analista';
 import { sha256Hex } from '../hash';
 import { llamarMeta, type Dependencias, type Mensaje } from '../meta/cliente';
 import { definirSalida, enumDe, type Salida } from '../meta/esquema';
@@ -140,8 +140,8 @@ export async function ejecutar(x: Contexto, d: Decision & { accion: Exclude<Acci
       const antes = e.seleccion;
       e.desviacion = a.desviacion;
       e.seleccion = seleccionar(a.desviacion);
-      // Si cambió la ruta o las espinas, la especificación y las causas anteriores ya no sirven.
-      if (antes && (antes.ruta !== e.seleccion.ruta || antes.espinas !== e.seleccion.espinas)) invalidarDesde(e, 'especificacion');
+      // Un enunciado nuevo deja sin base la especificación y las causas anteriores.
+      if (antes) invalidarDesde(e, 'especificacion');
       const ocurre = a.desviacion.ocurre.texto || 'sin enunciar';
       return { resumen: `Desviación: ${ocurre}. Regla de selección: ruta ${e.seleccion.ruta}.`, rechazos: deEvidencia(a.rechazos), costoUsd: r.costoUsd, demo: r.demo };
     }
@@ -211,6 +211,11 @@ export async function ejecutar(x: Contexto, d: Decision & { accion: Exclude<Acci
       const r = await llamar(x, 'agente:prueba', 'medium', P.tareaPrueba(e, filas), salida, 12_000);
       const a = aplicarJuicios(e, r.datos.juicios, filas);
       e.juicios = a.juicios;
+      // Lo que se derivó de juicios anteriores no sobrevive a juicios que lo contradicen.
+      const evaluadas = evaluarCausas(e, nivelesDe(e));
+      const estado = (id: string) => evaluadas.find((c) => c.id === id)?.estado;
+      e.intervenciones = e.intervenciones.filter((i) => estado(i.causa) === 'explica_todo');
+      e.verificaciones = e.verificaciones.filter((v) => estado(v.causa) !== 'descartada');
       return { resumen: `${a.juicios.length} juicios de ${e.causas.length * filas.length} pares causa-fila.`, rechazos: deEvidencia(a.rechazos), costoUsd: r.costoUsd, demo: r.demo };
     }
 
@@ -219,6 +224,7 @@ export async function ejecutar(x: Contexto, d: Decision & { accion: Exclude<Acci
       const salida = definirSalida('verificacion', z.object({ que_revisar: z.string(), con_quien: z.string(), confirma_si: z.string(), descarta_si: z.string() }));
       const r = await llamar(x, 'agente:verificacion', 'low', P.tareaVerificacion(e, x.causas, causa), salida, 3000);
       const v = r.datos;
+      if (![v.que_revisar, v.con_quien, v.confirma_si, v.descarta_si].every((t) => t.trim())) throw new ErrorAnalisis('La verificación llegó con campos vacíos');
       e.verificaciones.push({ causa: causa.id, queRevisar: v.que_revisar.trim(), conQuien: v.con_quien.trim(), confirmaSi: v.confirma_si.trim(), descartaSi: v.descarta_si.trim() });
       return { resumen: `Verificación de ${causa.id}: ${v.que_revisar.trim()}`, rechazos: [], costoUsd: r.costoUsd, demo: r.demo };
     }
@@ -228,7 +234,11 @@ export async function ejecutar(x: Contexto, d: Decision & { accion: Exclude<Acci
       const salida = definirSalida('intervencion', z.object({ accion: z.string(), evidencia: z.array(enumDe(idsAfirmaciones(e), 'ninguna')) }));
       const r = await llamar(x, 'agente:intervencion', 'medium', P.tareaIntervencion(e, x.causas, causa), salida, 4000);
       const validos = new Set(idsAfirmaciones(e));
-      e.intervenciones.push({ causa: causa.id, accion: r.datos.accion.trim(), evidencia: [...new Set(r.datos.evidencia)].filter((id) => validos.has(id)) });
+      if (!r.datos.accion.trim()) throw new ErrorAnalisis('La intervención llegó vacía');
+      // Sin evidencia propia, la intervención se apoya en la de la causa (ya verificada).
+      const propia = [...new Set(r.datos.evidencia)].filter((id) => validos.has(id));
+      const evidencia = propia.length > 0 ? propia : e.causas.find((c) => c.id === causa.id)!.evidencia;
+      e.intervenciones.push({ causa: causa.id, accion: r.datos.accion.trim(), evidencia });
       return { resumen: `Intervención para ${causa.id}: ${r.datos.accion.trim()}`, rechazos: [], costoUsd: r.costoUsd, demo: r.demo };
     }
 
@@ -253,6 +263,8 @@ async function leerFuentes(x: Contexto, ids: string[]): Promise<Ejecucion> {
   const nuevas = new Set<string>();
   const leidas: string[] = [];
   const fallos: unknown[] = [];
+  // Si la corroboración falla, las lecturas se deshacen: el paso se repite entero y no queda a medias.
+  const respaldo = { lecturas: { ...e.lecturas }, afirmaciones: [...e.afirmaciones] };
   resultados.forEach((r, i) => {
     const f = fuentes[i];
     if (r.status === 'rejected') return void fallos.push(r.reason);
@@ -280,7 +292,11 @@ async function leerFuentes(x: Contexto, ids: string[]): Promise<Ejecucion> {
     // Recién leídas cambian los niveles que ve el modelo: se recalculan para esta llamada.
     const contexto = { ...x, niveles: calcularNiveles(e.afirmaciones, new Set(e.confirmadas)) };
     // Corroborar exige comparar hechos entre fuentes: esfuerzo medio, como acordó la Pausa de F3.
-    const r = await llamar(contexto, 'agente:corroboracion', 'medium', P.tareaCorroborar(nuevasIds), salidaRel, 8000);
+    const r = await llamar(contexto, 'agente:corroboracion', 'medium', P.tareaCorroborar(nuevasIds), salidaRel, 8000).catch((err: unknown) => {
+      e.lecturas = respaldo.lecturas;
+      e.afirmaciones = respaldo.afirmaciones;
+      throw err;
+    });
     const a = aplicarRelaciones(e.afirmaciones, r.datos.relaciones, nuevas);
     e.afirmaciones = a.afirmaciones;
     relaciones = a.aplicadas;

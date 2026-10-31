@@ -112,8 +112,8 @@ rutasAgente.post('/agente/:id/confirmar', async (c) => {
     if (confirmada) confirmadas.add(clave);
     else confirmadas.delete(clave);
     e.confirmadas = [...confirmadas].sort();
-    // Lo que esperaba el agente ya cambió: el caso puede seguir.
-    if (e.terminado?.motivo === 'espera') e.terminado = null;
+    // El nivel de la evidencia cambió: el siguiente paso revisa el criterio de paro de nuevo.
+    if (e.terminado?.motivo === 'espera' || e.terminado?.motivo === 'criterio') e.terminado = null;
     if (!(await guardarAgente(db, sesion, e, fila.version))) return c.json({ error: 'El caso cambió; vuelve a cargarlo.' }, 409);
     return c.json(await vista(db, sesion, e));
   } finally {

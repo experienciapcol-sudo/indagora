@@ -41,8 +41,8 @@ export function revisarDecision(e: EstadoAgente, d: Decision, causas: readonly C
     case 'generar_causas': {
       const cronica = e.seleccion?.ruta === 'cronica';
       if (!e.desviacion) return no('fase_previa', 'Primero se enuncia la desviación');
-      if (!cronica && !e.esNoEs) return no('fase_previa', 'En la ruta aguda las causas salen de las distinciones y cambios del Es/No Es: falta especificarlo');
-      if (cronica && !e.weisbord) return no('fase_previa', 'En la ruta crónica las causas salen del barrido de Weisbord: falta hacerlo');
+      if (!cronica && !e.esNoEs?.length) return no('fase_previa', 'En la ruta aguda las causas salen de las distinciones y cambios del Es/No Es: falta especificarlo');
+      if (cronica && !e.weisbord?.length) return no('fase_previa', 'En la ruta crónica las causas salen del barrido de Weisbord: falta hacerlo');
       return repetida ? no('repetida', 'Ya se generaron causas y no hay fuentes nuevas desde entonces') : SI;
     }
     case 'probar_causas':

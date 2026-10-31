@@ -85,8 +85,7 @@ export function verificar(
       rasgos: [...new Set(m.rasgos)],
       alertas: detectarAlertas(cita),
       especificidad: datosEspecificos(cita),
-      corrobora: referencias(m.corrobora),
-      contradice: referencias(m.contradice),
+      ...enfrentadas(referencias(m.corrobora), referencias(m.contradice)),
     });
   });
 
@@ -118,3 +117,8 @@ function reconstruir(propias: Oracion[], indice: Map<string, number>): string {
 
 // Coma o punto decimal da igual: 9,4 y 9.4 son la misma cifra.
 const cifras = (s: string): string[] => (s.match(/\d+(?:[.,]\d+)?/g) ?? []).map((c) => c.replace(',', '.'));
+
+// Si el modelo pone el mismo id en las dos listas, gana la contradicción.
+function enfrentadas(corrobora: string[], contradice: string[]): { corrobora: string[]; contradice: string[] } {
+  return { corrobora: corrobora.filter((id) => !contradice.includes(id)), contradice };
+}
