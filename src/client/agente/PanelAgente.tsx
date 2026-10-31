@@ -13,6 +13,7 @@ import { PruebaCausas } from './PruebaCausas';
 import { ReglaSeleccion } from './ReglaSeleccion';
 import { Seccion } from './Seccion';
 import { TablaEsNoEs } from './TablaEsNoEs';
+import { PanelEntregables } from '../entregables/PanelEntregables';
 import { TEXTOS_AGENTE } from './textos';
 import { Verificaciones } from './Verificaciones';
 import { Weisbord } from './Weisbord';
@@ -290,6 +291,8 @@ export function PanelAgente({ alGasto }: { alGasto?: (g: VistaAgente['gasto']) =
               </Seccion>
             </div>
           </div>
+
+          <PanelEntregables vista={vista} />
 
           {abierta && (
             <DetalleEvidencia
