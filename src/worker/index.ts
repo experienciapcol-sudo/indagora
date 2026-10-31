@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { rutasAgente } from "./rutas/agente";
 import { rutasEntregables } from "./rutas/entregables";
+import { rutasLaboratorio } from "./rutas/laboratorio";
 import { rutasAnalizar } from "./rutas/analizar";
 import { rutasGasto } from "./rutas/gasto";
 import { conSesion, type Ambiente } from "./rutas/sesion";
@@ -19,6 +20,7 @@ app.route("/api", rutasGasto);
 app.route("/api", rutasAnalizar);
 app.route("/api", rutasAgente);
 app.route("/api", rutasEntregables);
+app.route("/api", rutasLaboratorio);
 
 // Errores: el detalle va al log, nunca a la respuesta
 app.onError((err, c) => {
