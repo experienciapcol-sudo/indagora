@@ -1,9 +1,15 @@
 import type { KeyboardEvent } from 'react';
 import { TEXTOS_AGENTE } from './textos';
 
-export type Pestana = 'agente' | 'evidencia';
+export type Pestana = 'agente' | 'evidencia' | 'laboratorio';
 
-const ORDEN: readonly Pestana[] = ['agente', 'evidencia'];
+const ORDEN: readonly Pestana[] = ['agente', 'evidencia', 'laboratorio'];
+
+const ETIQUETAS: Record<Pestana, string> = {
+  agente: TEXTOS_AGENTE.pestanas.agente,
+  evidencia: TEXTOS_AGENTE.pestanas.evidencia,
+  laboratorio: 'Laboratorio',
+};
 
 // Pestañas con teclado: flechas, inicio y fin mueven la selección (patrón WAI-ARIA).
 export function Pestanas({ activa, onCambiar }: { activa: Pestana; onCambiar: (p: Pestana) => void }) {
@@ -35,7 +41,7 @@ export function Pestanas({ activa, onCambiar }: { activa: Pestana; onCambiar: (p
           onClick={() => onCambiar(p)}
           onKeyDown={alTeclear}
         >
-          {TEXTOS_AGENTE.pestanas[p]}
+          {ETIQUETAS[p]}
         </button>
       ))}
     </div>

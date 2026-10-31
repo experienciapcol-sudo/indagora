@@ -9,6 +9,8 @@ import { Pestanas } from './agente/Pestanas';
 import type { Pestana } from './agente/Pestanas';
 import { Encabezado } from './Encabezado';
 import type { EstadoServicio } from './Encabezado';
+import { PanelLaboratorio } from './laboratorio/PanelLaboratorio';
+import { siguienteId as siguienteIdFuente } from './sesion';
 import { PanelAnalisis } from './PanelAnalisis';
 import { PanelFuentes } from './PanelFuentes';
 import type { InfoCaso } from './PanelFuentes';
@@ -182,6 +184,16 @@ export default function App() {
       <main>
         <div role="tabpanel" id="panel-agente" aria-labelledby="pestana-agente" hidden={pestana !== 'agente'}>
           <PanelAgente alGasto={(g) => setGasto((x) => (x ? { ...x, ...g } : x))} />
+        </div>
+
+        <div role="tabpanel" id="panel-laboratorio" aria-labelledby="pestana-laboratorio" hidden={pestana !== 'laboratorio'}>
+          <PanelLaboratorio
+            siguienteIdFuente={siguienteIdFuente(fuentes, 'entrevista')}
+            onFuenteReal={(fuente) => {
+              agregarFuente(fuente);
+              setPestana('evidencia');
+            }}
+          />
         </div>
 
         <div role="tabpanel" id="panel-evidencia" aria-labelledby="pestana-evidencia" hidden={pestana !== 'evidencia'}>

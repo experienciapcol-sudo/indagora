@@ -1,0 +1,35 @@
+/* Indagora · Laboratorio, voz y hablantes. Usa las variables de ../estilos.css. */
+.laboratorio { margin-top: 1.75rem; display: grid; gap: 1.1rem; }
+.lab-cabeza h2 { font-family: var(--serif); font-size: clamp(1.45rem, 3.2vw, 1.9rem); color: var(--tinta); margin-bottom: 0.4rem; }
+.lab-formulario { display: grid; gap: 1.1rem; }
+@media (min-width: 64rem) { .lab-formulario { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; } }
+.lab-tarjeta { padding: 1rem 1.15rem 1.1rem; border: 1px solid var(--borde-fuerte); border-radius: 0.5rem; background: var(--tarjeta); display: grid; gap: 0.7rem; align-content: start; min-width: 0; }
+.lab-tarjeta h3 { font-family: var(--serif); font-size: 1.3rem; color: var(--tinta); }
+.lab-tarjeta h4 { font-family: var(--serif); font-size: 1.05rem; color: var(--tinta); }
+.lab-preparadas { display: grid; gap: 0.7rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.lab-preparada { display: grid; gap: 0.45rem; align-content: start; padding: 0.8rem; border: 1px solid var(--borde); border-radius: 0.4rem; background: var(--papel); }
+.lab-meta { font-size: 0.8rem; color: var(--suave); }
+.lab-check { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.92rem; }
+.lab-acciones { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.lab-grabado-aviso { padding: 0.85rem 1rem; border: 2px solid var(--n1-borde, var(--borde-fuerte)); border-radius: 0.4rem; background: var(--n1-fondo, var(--papel)); font-weight: 700; }
+.lab-entrevistas { display: grid; gap: 0.8rem; list-style: none; padding: 0; }
+.lab-intercambio { padding: 0.75rem 0.9rem; border: 1px solid var(--borde); border-left: 4px solid var(--acento); border-radius: 0.3rem; background: var(--papel); display: grid; gap: 0.35rem; }
+.lab-pregunta { font-size: 0.92rem; }
+.lab-respuesta { font-family: var(--serif); font-size: 1rem; line-height: 1.45; }
+.lab-aviso-fuga { padding: 0.5rem 0.7rem; border: 1px dashed var(--falla); border-radius: 0.3rem; color: var(--falla); font-size: 0.88rem; font-weight: 600; }
+.lab-comparacion { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .lab-comparacion { grid-template-columns: 1fr 1fr; } }
+.lab-comparacion article { display: grid; gap: 0.45rem; align-content: start; padding: 0.85rem; border: 1px solid var(--borde); border-radius: 0.4rem; background: var(--papel); }
+.lab-veredicto { font-family: var(--serif); font-size: 1.2rem; font-weight: 700; color: var(--tinta); }
+.lab-veredicto--encontrada { color: var(--acento); }
+.lab-veredicto--no_encontrada { color: var(--falla); }
+.lab-hablantes { display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.lab-hablante { display: grid; gap: 0.5rem; padding: 0.8rem; border: 1px solid var(--borde); border-radius: 0.4rem; background: var(--papel); }
+.lab-hablante legend { font-weight: 700; padding: 0 0.3rem; }
+.lab-muestra { font-size: 0.88rem; font-style: italic; }
+.lab-vista-previa { white-space: pre-wrap; word-break: break-word; padding: 0.8rem; border: 1px solid var(--borde); border-radius: 0.3rem; background: var(--papel); font-size: 0.86rem; max-height: 22rem; overflow: auto; }
+.lab-grabadora { display: grid; gap: 0.6rem; }
+.lab-grabadora audio { width: min(100%, 28rem); }
+.laboratorio .campo { display: grid; gap: 0.3rem; font-size: 0.9rem; }
+.laboratorio .campo input, .laboratorio .campo select, .laboratorio .campo textarea { font: inherit; padding: 0.5rem 0.65rem; border: 1px solid var(--borde-fuerte); border-radius: 0.35rem; background: var(--fondo); color: var(--texto); }
+.laboratorio :focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
