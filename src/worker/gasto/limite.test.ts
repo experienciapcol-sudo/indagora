@@ -23,9 +23,18 @@ describe('dentroDelLimite', () => {
     const db = d1Falsa();
     for (let i = 0; i < 4; i++) await dentroDelLimite(db, 'a', l, t0);
     expect(await dentroDelLimite(db, 'a', l, t0 + 60_000)).toBe(true);
-    await dentroDelLimite(db, 'a', l, t0 + 180_000);
+    await dentroDelLimite(db, 'a', l, t0 + 3 * 86_400_000);
     const filas = await db.prepare('SELECT COUNT(*) AS n FROM limites').first<{ n: number }>();
     expect(filas!.n).toBe(1);
+  });
+
+  it('un límite por minuto no borra ni mezcla el diario', async () => {
+    const db = d1Falsa();
+    const dia = { llamadas: 2, periodoS: 86_400 };
+    expect(await dentroDelLimite(db, 'a', dia, t0)).toBe(true);
+    expect(await dentroDelLimite(db, 'a', dia, t0 + 1000)).toBe(true);
+    for (let i = 0; i < 3; i++) await dentroDelLimite(db, 'a', l, t0 + 600_000 * (i + 1));
+    expect(await dentroDelLimite(db, 'a', dia, t0 + 2_000_000)).toBe(false);
   });
 
   it('no guarda la IP en claro', async () => {

@@ -14,11 +14,15 @@ export interface VarsTopes {
 
 export class TopeAlcanzado extends Error {
   constructor(
-    readonly alcance: 'sesion' | 'global',
+    readonly alcance: 'sesion' | 'global' | 'subtope',
     readonly gastadoUsd: number,
     readonly topeUsd: number,
   ) {
-    super(alcance === 'sesion' ? 'Se alcanzó el tope de gasto de esta sesión' : 'Se alcanzó el tope de gasto global');
+    super(
+      alcance === 'sesion' ? 'Se alcanzó el tope de gasto de esta sesión'
+      : alcance === 'subtope' ? 'Se alcanzó el tope de gasto de esta parte en la sesión'
+      : 'Se alcanzó el tope de gasto global',
+    );
     this.name = 'TopeAlcanzado';
   }
 }
@@ -41,10 +45,20 @@ export interface Reserva {
   modelo: string;
   proposito: string;
   estimadoUsd: number;
+  // Tope adicional para los propósitos que empiezan con `prefijo` (p. ej. 'lab:'), en la misma
+  // sentencia que los demás: dos llamadas simultáneas no pueden pasarlo a la vez.
+  subtope?: { prefijo: string; usd: number };
 }
+
+// Una reserva sin cerrar después de esto se da por fallida; conserva su estimación, que es una
+// cota superior, así el gasto nunca queda por debajo de lo que pudo costar.
+const VENCE_RESERVA = '-15 minutes';
 
 export async function reservar(db: D1Database, r: Reserva, topes: Topes): Promise<void> {
   if (!Number.isFinite(r.estimadoUsd) || r.estimadoUsd < 0) throw new Error(`Costo estimado inválido: ${r.estimadoUsd}`);
+  if (r.subtope && (!Number.isFinite(r.subtope.usd) || r.subtope.usd < 0 || !/^[a-z]+:$/.test(r.subtope.prefijo))) throw new Error(`Subtope inválido: ${JSON.stringify(r.subtope)}`);
+  // El subtope solo limita a las llamadas de su propio propósito.
+  const sub = r.subtope && r.proposito.startsWith(r.subtope.prefijo) ? r.subtope : null;
   // batch corre como una transacción: el total global solo sube si la reserva entró.
   const [res] = await db.batch([
     db
@@ -52,21 +66,37 @@ export async function reservar(db: D1Database, r: Reserva, topes: Topes): Promis
         `INSERT INTO llamadas (id, sesion, modelo, proposito, estado, costo_usd)
          SELECT ?1, ?2, ?3, ?4, 'reservada', ?5
          WHERE (SELECT COALESCE(SUM(costo_usd), 0) FROM llamadas WHERE sesion = ?2) + ?5 <= ?6
-           AND (SELECT usd FROM totales WHERE clave = 'global') + ?5 <= ?7`,
+           AND (SELECT usd FROM totales WHERE clave = 'global') + ?5 <= ?7
+           AND (?8 IS NULL OR (SELECT COALESCE(SUM(costo_usd), 0) FROM llamadas WHERE sesion = ?2 AND substr(proposito, 1, length(?8)) = ?8) + ?5 <= ?9)`,
       )
-      .bind(r.id, r.sesion, r.modelo, r.proposito, r.estimadoUsd, topes.sesionUsd, topes.globalUsd),
+      .bind(r.id, r.sesion, r.modelo, r.proposito, r.estimadoUsd, topes.sesionUsd, topes.globalUsd, sub?.prefijo ?? null, sub?.usd ?? 0),
     db
       .prepare(
         `UPDATE totales SET usd = usd + ?2
          WHERE clave = 'global' AND EXISTS (SELECT 1 FROM llamadas WHERE id = ?1 AND estado = 'reservada')`,
       )
       .bind(r.id, r.estimadoUsd),
+    db
+      .prepare(
+        `UPDATE llamadas SET estado = 'fallida', error = 'reserva vencida sin cierre'
+         WHERE estado = 'reservada' AND creada < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?1)`,
+      )
+      .bind(VENCE_RESERVA),
   ]);
   if (res.meta.changes === 1) return;
 
   const g = await resumen(db, r.sesion);
   if (g.globalUsd + r.estimadoUsd > topes.globalUsd) throw new TopeAlcanzado('global', g.globalUsd, topes.globalUsd);
-  throw new TopeAlcanzado('sesion', g.sesionUsd, topes.sesionUsd);
+  if (g.sesionUsd + r.estimadoUsd > topes.sesionUsd || !sub) throw new TopeAlcanzado('sesion', g.sesionUsd, topes.sesionUsd);
+  throw new TopeAlcanzado('subtope', await gastoConPrefijo(db, r.sesion, sub.prefijo), sub.usd);
+}
+
+export async function gastoConPrefijo(db: D1Database, sesion: string, prefijo: string): Promise<number> {
+  const f = await db
+    .prepare(`SELECT COALESCE(SUM(costo_usd), 0) AS usd FROM llamadas WHERE sesion = ?1 AND substr(proposito, 1, length(?2)) = ?2`)
+    .bind(sesion, prefijo)
+    .first<{ usd: number }>();
+  return f?.usd ?? 0;
 }
 
 export interface Cierre {

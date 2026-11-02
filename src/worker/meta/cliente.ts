@@ -32,6 +32,8 @@ export interface Peticion<T> {
   mensajes: Mensaje[];
   salida: Salida<T>;
   maxTokens?: number;
+  // Tope adicional por propósito (ver `reservar`), p. ej. el del Laboratorio público.
+  subtope?: { prefijo: string; usd: number };
   promptCacheKey?: string;
   // Clave de grabación: en DEMO_MODE se reproduce; fuera de él, con `grabar`, se guarda.
   // `{ caso }`: se aparta para ese caso del agente y se publica solo si el caso termina bien.
@@ -113,7 +115,7 @@ export async function llamarMeta<T>(deps: Dependencias, p: Peticion<T>): Promise
     // Si se alcanzó el tope, TopeAlcanzado sale de aquí sin llamar a la API. En el reintento
     // se informa el fallo original, que es lo que el usuario necesita saber.
     try {
-      await reservar(deps.db, { id, sesion: p.sesion, modelo, proposito: p.proposito, estimadoUsd }, topes);
+      await reservar(deps.db, { id, sesion: p.sesion, modelo, proposito: p.proposito, estimadoUsd, subtope: p.subtope }, topes);
     } catch (e) {
       if (ultimo && e instanceof TopeAlcanzado) throw ultimo;
       throw e;
