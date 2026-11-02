@@ -346,6 +346,16 @@ describe('guardas', () => {
     expect(revisar(e, decision('detenerse'))).toMatchObject({ ok: false, motivo: 'criterio_no_cumplido' });
   });
 
+  it('acepta la entrega parcial con la desviación incompleta si ya pidió un documento', () => {
+    const e = probado();
+    e.causas[0].evidencia = ['E2-A02']; // C1 queda en N2
+    e.desviacion!.esperado = { texto: '', evidencia: [] };
+    expect(revisar(e, decision('detenerse'))).toMatchObject({ ok: false, motivo: 'criterio_no_cumplido' });
+    // Sin fuentes nuevas no puede volver a enunciar: solo el documento pedido lo destraba.
+    e.solicitudes.push({ id: 'S1', descripcion: 'Registro de citas', motivo: 'subir C1 a N4' });
+    expect(revisar(e, decision('detenerse'))).toEqual({ ok: true });
+  });
+
   it('no diseña verificación de una causa sin probar ni de una descartada', () => {
     const e = probado();
     expect(revisar(e, decision('disenar_verificacion', { causa: 'C2' }))).toMatchObject({ ok: false, motivo: 'parametro_invalido' });

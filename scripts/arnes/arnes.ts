@@ -26,7 +26,13 @@ export function leerDevVars(ruta = '.dev.vars'): Record<string, string> {
 
 export function dependenciasDesde(vars: Record<string, string>): Dependencias | null {
   if (!vars.META_API_KEY || !vars.META_API_BASE_URL) return null;
-  return { env: { META_API_KEY: vars.META_API_KEY, META_API_BASE_URL: vars.META_API_BASE_URL }, db: d1Falsa() };
+  // La D1 falsa es una sola para todo el arnés: el tope global cubre el tope del arnés
+  // (que es el que manda) y cada corrida usa una sesión nueva con margen para el agente.
+  const topeArnes = Math.max(0, Number(process.env.TOPE_ARNES_USD ?? 20) || 20);
+  return {
+    env: { META_API_KEY: vars.META_API_KEY, META_API_BASE_URL: vars.META_API_BASE_URL, TOPE_SESION_USD: '1', TOPE_GLOBAL_USD: String(topeArnes + 2) },
+    db: d1Falsa(),
+  };
 }
 
 export interface OpcionesArnes {

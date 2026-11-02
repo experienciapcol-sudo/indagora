@@ -55,16 +55,22 @@ export function evaluarCausas(e: EstadoAgente, niveles: ReadonlyMap<string, Nive
 
 // Lo que solo el consultor puede destrabar cuando a la causa principal le falta nivel:
 // confirmar corroboraciones propuestas sobre su evidencia o aportar los documentos pedidos.
-// Vacío si falta algo más que el nivel de la principal.
+// También cuenta la desviación incompleta: sin fuentes nuevas no se puede volver a enunciar,
+// así que solo se completa con lo que aporte el consultor.
+// Vacío si falta algo más, o si el consultor no tiene nada que confirmar ni aportar.
 export function esperaDelConsultor(e: EstadoAgente, causas: readonly CausaEvaluada[], niveles: ReadonlyMap<string, NivelCalculado>, criterio: EstadoCriterio): string[] {
   const p = causas.find((c) => c.principal);
-  if (!p || criterio.cumplido || !criterio.faltantes.every((f) => f.startsWith(`${p.id} tiene N`))) return [];
+  const delConsultor = (f: string) => f === FALTA_DESVIACION || (!!p && f.startsWith(`${p.id} tiene N`));
+  if (!p || criterio.cumplido || !criterio.faltantes.every(delConsultor)) return [];
   const evidencia = e.causas.find((c) => c.id === p.id)!.evidencia;
   const pares = new Set(evidencia.flatMap((id) => niveles.get(id)?.pendientes ?? []));
-  return [
+  const pendiente = [
     ...[...pares].map((k) => `Confirmar la corroboración ${k.replace('|', ' con ')}`),
     ...e.solicitudes.map((s) => `Aportar el documento ${s.id}: ${s.descripcion}`),
   ];
+  // Con la desviación incompleta, una corroboración no la llena: hace falta un documento pedido.
+  if (criterio.faltantes.includes(FALTA_DESVIACION) && e.solicitudes.length === 0) return [];
+  return pendiente;
 }
 
 const casillas = (e: EstadoAgente): Casilla[] => [
@@ -74,6 +80,7 @@ const casillas = (e: EstadoAgente): Casilla[] => [
 ];
 
 const llena = (c: Casilla) => c.texto.trim() !== '';
+const FALTA_DESVIACION = 'Falta enunciar la desviación (qué se esperaba y qué ocurre) con evidencia';
 
 export function criterioDeParo(e: EstadoAgente, causas: readonly CausaEvaluada[]): EstadoCriterio {
   const cumplidos: string[] = [];
@@ -84,7 +91,7 @@ export function criterioDeParo(e: EstadoAgente, causas: readonly CausaEvaluada[]
   revisar(sinLeer.length === 0, 'Todas las fuentes entregadas están leídas', `Faltan fuentes por leer: ${sinLeer.join(', ')}`);
 
   const d = e.desviacion;
-  revisar(!!d && llena(d.ocurre) && llena(d.esperado), 'La desviación está enunciada con evidencia', 'Falta enunciar la desviación (qué se esperaba y qué ocurre) con evidencia');
+  revisar(!!d && llena(d.ocurre) && llena(d.esperado), 'La desviación está enunciada con evidencia', FALTA_DESVIACION);
 
   if (e.seleccion?.ruta === 'cronica') {
     revisar((e.weisbord ?? []).some((h) => h.estado === 'brecha'), 'El barrido de Weisbord encontró brechas con evidencia', 'Falta barrer las seis casillas de Weisbord con evidencia');
