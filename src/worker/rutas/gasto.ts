@@ -27,7 +27,9 @@ const LIMITE_PRUEBA = { llamadas: 5, periodoS: 60 };
 
 const ORACION_FICTICIA = 'La entrega del lunes salió dos días tarde porque faltó una pieza del proveedor.';
 
+// Superficie de gasto ajena al diagnóstico: solo existe si se habilita a propósito.
 rutasGasto.post('/prueba', async (c) => {
+  if (c.env.PERMITIR_PRUEBA !== 'true') return c.json({ error: 'No encontrado' }, 404);
   const sesion = c.get('sesion');
   if (!(await dentroDelLimite(c.env.DB, ipDe(c), LIMITE_PRUEBA))) {
     return c.json({ error: 'Demasiadas llamadas seguidas; espera un minuto.' }, 429);
