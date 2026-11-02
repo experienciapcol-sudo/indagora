@@ -12,41 +12,6 @@
   white-space: nowrap;
 }
 
-/* ---------- pestañas (§5.2) ---------- */
-
-.pestanas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-1);
-  margin-top: var(--e-5);
-  border-bottom: 1px solid var(--borde);
-}
-.pestana {
-  font: inherit;
-  font-family: var(--sans);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  min-height: 44px;
-  padding: var(--e-2) var(--e-4);
-  border: 1px solid transparent;
-  border-bottom: 0;
-  border-radius: var(--r-2) var(--r-2) 0 0;
-  background: transparent;
-  color: var(--texto-2);
-  cursor: pointer;
-  box-shadow: inset 0 -2px 0 transparent;
-}
-.pestana--activa,
-.pestana[aria-selected="true"] {
-  color: var(--texto);
-  background: var(--superficie);
-  border-color: var(--borde);
-  box-shadow: inset 0 -2px 0 var(--acento);
-}
-@media (hover: hover) and (pointer: fine) {
-  .pestana:hover { color: var(--texto); background: var(--superficie-2); }
-}
-
 /* ---------- panel (§3.2) ---------- */
 
 .agente { margin-top: var(--e-6); }
@@ -247,7 +212,7 @@
 .seleccion__codigo .icono { width: 1rem; height: 1rem; }
 .seleccion__razones ul { display: grid; gap: var(--e-1); font-size: var(--t-base); margin-top: var(--e-1); }
 .seleccion__razones li { position: relative; padding-left: var(--e-4); }
-.seleccion__razones li::before { content: "–"; position: absolute; left: 0; }
+.seleccion__razones li::before { content: "•"; position: absolute; left: 0; }
 
 .herramientas { display: grid; }
 .herramienta {
@@ -266,7 +231,7 @@
 .herramienta__estado .icono { width: 1rem; height: 1rem; }
 .herramienta--elegida .herramienta__estado { color: var(--ok); }
 .herramienta__nombre { grid-area: nombre; font-weight: 600; }
-.herramienta__fuente { grid-area: fuente; font-family: var(--serif); font-style: italic; font-size: var(--t-chica); color: var(--texto-2); }
+.herramienta__fuente { grid-area: fuente; font-family: var(--sans); font-style: italic; font-size: var(--t-chica); color: var(--texto-2); }
 .herramienta__razon { grid-area: razon; font-size: var(--t-base); }
 @media (max-width: 34rem) {
   .herramienta { grid-template-columns: 1fr; grid-template-areas: "estado" "nombre" "fuente" "razon"; }
@@ -642,7 +607,7 @@
 .evento__cuerpo { display: grid; gap: var(--e-1); min-width: 0; }
 .evento__titulo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-1) var(--e-2); margin: 0; }
 .evento__rotulo { font-size: var(--t-micro); font-weight: 600; color: var(--texto-2); }
-.evento__texto { font-family: var(--serif); font-size: 0.9375rem; line-height: 1.5; margin: 0; }
+.evento__texto { font-family: var(--sans); font-size: 0.9375rem; line-height: 1.5; margin: 0; }
 .evento__nota { font-size: var(--t-chica); color: var(--texto-2); font-style: italic; }
 .evento__param { font-family: var(--mono); font-size: var(--t-micro); color: var(--texto-2); font-variant-numeric: tabular-nums; }
 .evento__punteros { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-1) var(--e-2); }

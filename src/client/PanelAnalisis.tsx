@@ -2,6 +2,7 @@ import type { FuenteEntrada } from '../nucleo/tipos';
 import { formatoSegundos, formatoUsd } from './sesion';
 import type { EstadosPorFuente } from './sesion';
 import { TEXTOS } from './textos';
+import { IconoCheck, IconoReloj, IconoX } from './Iconos';
 
 interface Props {
   fuentes: readonly FuenteEntrada[];
@@ -70,7 +71,7 @@ export function PanelAnalisis({ fuentes, estados, analizando, deteniendo, aviso,
                 <li key={f.id} className={`paso paso--${e.tipo}`}>
                   <span className="id">{f.id}</span>
                   <span className="paso__estado">
-                    <span className="paso__icono" aria-hidden="true" />
+                    {e.tipo === 'lista' ? <IconoCheck /> : e.tipo === 'error' ? <IconoX /> : <IconoReloj />}
                     {T.estados[e.tipo]}
                   </span>
                   <span className="paso__detalle">

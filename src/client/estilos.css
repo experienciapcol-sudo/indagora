@@ -1,6 +1,5 @@
 /* Indagora · instrumento de análisis y expediente de trabajo (UI.md §2–§5).
-   Tokens del diseño; los alias --suave/--tarjeta/--papel/--tinta/--falla se
-   conservan para agente.css, entregables.css y laboratorio.css (tareas 19–20). */
+   Tokens del diseño. */
 
 :root {
   color-scheme: light dark;
@@ -33,14 +32,6 @@
   --n3-fondo: #DFF0E3; --n3-texto: #14512F; --n3-borde: #2F7D4F;
   --n4-fondo: #E9DFF7; --n4-texto: #4A2680; --n4-borde: #7555AE;
 
-  /* Alias heredados: no usar en código nuevo. */
-  --suave: var(--texto-2);
-  --tarjeta: var(--superficie);
-  --papel: var(--superficie);
-  --tinta: var(--texto);
-  --falla: var(--error);
-  --sobre-falla: var(--sobre-error);
-  --punto: transparent;
 
   --sans: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
   --serif: "IBM Plex Serif", "Iowan Old Style", Georgia, serif;
@@ -203,13 +194,13 @@ a { color: var(--acento-tinta); text-underline-offset: 3px; }
   transition: transform var(--d-rapida) var(--ease-out), background-color var(--d-rapida) var(--ease-estandar), border-color var(--d-rapida) var(--ease-estandar);
 }
 .boton:active:not(:disabled) { transform: scale(0.97); }
-.boton:disabled { opacity: 0.65; cursor: not-allowed; color: var(--texto-2); }
-.boton:not(.boton--secundario):not(.boton--texto):disabled { color: var(--sobre-acento); }
+.boton:disabled { cursor: not-allowed; background: var(--superficie-3); border-color: var(--borde); color: var(--texto-2); }
+.boton--texto:disabled { background: transparent; border-color: transparent; color: var(--texto-2); }
 
 .boton--secundario { background: transparent; color: var(--acento-tinta); border-color: var(--borde-fuerte); }
-.boton--secundario:disabled { color: var(--texto-2); }
+.boton--secundario:disabled { background: transparent; border-color: var(--borde); color: var(--texto-2); }
 .boton--peligro { background: var(--error); border-color: var(--error); color: var(--sobre-error); }
-.boton--peligro:disabled { color: var(--sobre-error); }
+.boton--peligro:disabled { background: var(--superficie-3); border-color: var(--borde); color: var(--texto-2); }
 
 .boton--texto {
   background: none;
@@ -281,7 +272,6 @@ a { color: var(--acento-tinta); text-underline-offset: 3px; }
 .encabezado__idiomas .boton:disabled {
   background: var(--superficie-2);
   color: var(--texto);
-  opacity: 1;
   cursor: default;
 }
 
@@ -474,13 +464,13 @@ a { color: var(--acento-tinta); text-underline-offset: 3px; }
 .paso__estado { display: inline-flex; align-items: center; gap: var(--e-2); min-width: 8.5rem; font-weight: 600; }
 .paso__detalle { color: var(--texto-2); font-size: var(--t-chica); font-family: var(--mono); }
 .paso--error .paso__detalle { color: var(--error); font-family: var(--sans); font-weight: 500; }
-.paso__icono { width: 0.8rem; height: 0.8rem; border-radius: var(--r-punto); border: 2px dashed var(--texto-3); flex: none; }
+.paso__estado .icono { width: 1rem; height: 1rem; flex: none; color: var(--texto-3); }
 .paso--analizando { border-color: var(--n2-borde); }
-.paso--analizando .paso__icono { border: 2px solid var(--borde); border-top-color: var(--n2-borde); animation: girar 0.8s linear infinite; }
+.paso--analizando .paso__estado .icono { color: var(--n2-borde); animation: girar 0.8s linear infinite; }
 .paso--lista { border-color: var(--ok); }
-.paso--lista .paso__icono { border: 0; background: var(--ok); }
+.paso--lista .paso__estado .icono { color: var(--ok); }
 .paso--error { border-color: var(--error); background: var(--error-fondo); }
-.paso--error .paso__icono { border: 0; border-radius: 2px; background: var(--error); }
+.paso--error .paso__estado .icono { color: var(--error); }
 @keyframes girar { to { transform: rotate(360deg); } }
 
 .aviso-estado { margin-top: var(--e-2); font-size: var(--t-base); font-weight: 500; }
@@ -700,7 +690,7 @@ a { color: var(--acento-tinta); text-underline-offset: 3px; }
 .razones .rotulo { color: inherit; margin-bottom: var(--e-1); }
 .razones ul { display: grid; gap: 2px; font-size: var(--t-base); }
 .razones li { position: relative; padding-left: var(--e-4); }
-.razones li::before { content: "–"; position: absolute; left: 0; }
+.razones li::before { content: "•"; position: absolute; left: 0; }
 
 .corroboracion {
   display: grid;
@@ -741,6 +731,6 @@ a { color: var(--acento-tinta); text-underline-offset: 3px; }
     transition-property: opacity !important;
     transition-duration: var(--d-rapida) !important;
   }
-  .paso--analizando .paso__icono { animation: none !important; }
+  .paso--analizando .paso__estado .icono { animation: none !important; }
   .boton:active:not(:disabled) { transform: none; }
 }
