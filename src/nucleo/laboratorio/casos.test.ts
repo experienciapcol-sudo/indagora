@@ -47,6 +47,28 @@ describe('casos preparados', () => {
     for (const prep of CASOS_PREPARADOS) expect(prep.comparacionReferencia.veredicto).toBe('encontrada');
   });
 
+  it('cada persona responde de 4 a 7 oraciones sin filtrar marcadores en la ronda abierta', () => {
+    for (const prep of CASOS_PREPARADOS) {
+      for (const persona of prep.caso.personas) {
+        const intercambio = prep.intercambios.find((x) => x.persona === persona.id);
+        expect(intercambio).toBeDefined();
+        const oraciones = intercambio!.respuesta.split(/(?<=\.)\s+/).filter((o) => o.trim().length > 0);
+        expect(oraciones.length).toBeGreaterThanOrEqual(4);
+        expect(oraciones.length).toBeLessThanOrEqual(7);
+        expect(intercambio!.respuesta.length).toBeGreaterThan(250);
+        for (const m of prep.verdad.causa.marcadores) {
+          expect(intercambio!.respuesta.toLowerCase()).not.toContain(m.toLowerCase());
+        }
+        // Toda oración inicial viene de un hecho autorizado en la ronda abierta.
+        for (const oracion of oraciones) {
+          expect(prep.verdad.hechos.some((h) => h.dueno === persona.id && h.revelacion === 'siempre' && h.texto === oracion)).toBe(true);
+        }
+      }
+      const fuentesEntrevista = prep.fuentes.filter((f) => f.tipo === 'entrevista');
+      for (const fuente of fuentesEntrevista) expect(fuente.texto.length).toBeGreaterThan(250);
+    }
+  });
+
   it('la vista pública no contiene marcadores de la causa', () => {
     for (const prep of CASOS_PREPARADOS) {
       const publico = JSON.stringify(prep.caso).toLowerCase();
