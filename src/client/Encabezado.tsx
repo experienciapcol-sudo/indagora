@@ -32,19 +32,19 @@ export function Encabezado({ servicio, gasto }: Props) {
       </div>
 
       <div className="encabezado__estado">
-        <div role="group" aria-label="Idioma / Language">
+        <div className="encabezado__idiomas" role="group" aria-label="Idioma / Language">
           <button
             type="button"
-            className="boton boton--secundario"
+            className={`boton boton--secundario${idioma === 'es' ? ' boton--activo' : ''}`}
             aria-pressed={idioma === 'es'}
             disabled={idioma === 'es'}
             onClick={() => cambiarIdioma('es')}
           >
             ES
-          </button>{' '}
+          </button>
           <button
             type="button"
-            className="boton boton--secundario"
+            className={`boton boton--secundario${idioma === 'en' ? ' boton--activo' : ''}`}
             aria-pressed={idioma === 'en'}
             disabled={idioma === 'en'}
             onClick={() => cambiarIdioma('en')}

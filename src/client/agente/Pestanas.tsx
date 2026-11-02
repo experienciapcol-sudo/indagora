@@ -34,7 +34,7 @@ export function Pestanas({ activa, onCambiar }: { activa: Pestana; onCambiar: (p
           type="button"
           role="tab"
           id={`pestana-${p}`}
-          className="pestana"
+          className={`pestana${activa === p ? ' pestana--activa' : ''}`}
           aria-selected={activa === p}
           aria-controls={`panel-${p}`}
           tabIndex={activa === p ? 0 : -1}
