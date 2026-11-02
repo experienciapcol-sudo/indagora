@@ -20,7 +20,8 @@ class RevisorEntregables {
     this.rechazos.push({ elemento, motivo, detalle });
   }
   // Devuelve punteros válidos o null si el elemento debe descartarse.
-  punteros(elemento: string, punteros: readonly string[]): string[] | null {
+  // Si se dan `permitidos`, además de existir deben pertenecer a la evidencia de la causa.
+  punteros(elemento: string, punteros: readonly string[], permitidos?: ReadonlySet<string>): string[] | null {
     if (!punteros || punteros.length === 0) {
       this.rechazar(elemento, 'sin_punteros', `${elemento}: no señala ninguna afirmación`);
       return null;
@@ -29,6 +30,13 @@ class RevisorEntregables {
     if (invalidos.length) {
       this.rechazar(elemento, 'puntero_inexistente', `${elemento}: ${invalidos.join(', ')} no es una afirmación del caso`);
       return null;
+    }
+    if (permitidos) {
+      const ajenos = [...new Set(punteros.filter((id) => !permitidos.has(id)))];
+      if (ajenos.length) {
+        this.rechazar(elemento, 'puntero_no_pertinente', `${elemento}: ${ajenos.join(', ')} existe(n) pero no forma(n) parte de la evidencia de la causa`);
+        return null;
+      }
     }
     return [...new Set(punteros)];
   }
@@ -48,6 +56,31 @@ class RevisorEntregables {
 
 const vacio = (s: string | null | undefined) => !s || s.trim() === '';
 
+// Evidencia declarada por el código para una causa: único ámbito pertinente de sus punteros.
+const evidenciaDeCausa = (vista: VistaAgente, causaId: string): ReadonlySet<string> =>
+  new Set(vista.estado.causas.find((c) => c.id === causaId)?.evidencia ?? []);
+
+const numerosDeTexto = (s: string): number[] =>
+  [...s.matchAll(/\d+(?:[.,]\d+)?/g)].map((m) => Number(m[0].replace(',', '.'))).filter((n) => Number.isFinite(n));
+
+// La línea base solo vale si TODAS sus cifras aparecen literalmente en la cita o en la
+// especificidad detectada por el código de alguna afirmación señalada. Si no, queda null.
+function lineaBaseSostenida(vista: VistaAgente, punteros: readonly string[], lineaBase: string | null | undefined): string | null {
+  const texto = lineaBase?.trim();
+  if (!texto) return null;
+  const cifras = numerosDeTexto(texto);
+  if (cifras.length === 0) return null;
+  const porId = new Map(vista.estado.afirmaciones.map((a) => [a.id, a]));
+  const sostenidas = new Set<number>();
+  for (const id of punteros) {
+    const a = porId.get(id);
+    if (!a) continue;
+    for (const n of numerosDeTexto(a.cita)) sostenidas.add(n);
+    for (const n of a.especificidad.flatMap(numerosDeTexto)) sostenidas.add(n);
+  }
+  return cifras.every((n) => sostenidas.has(n)) ? texto : null;
+}
+
 export function aplicarVerificaciones(
   vista: VistaAgente, propuestas: readonly VerificacionPropuesta[],
 ): { verificaciones: PlanVerificacion[]; rechazos: RechazoEntregable[] } {
@@ -59,7 +92,7 @@ export function aplicarVerificaciones(
     if (!evaluada) continue;
     if (!elegibleParaVerificacion(evaluada)) {
       // Una causa elegible para intervenir no necesita plan de verificación en este entregable.
-      r.rechazar(elemento, 'causa_no_elegible_intervencion', `${elemento}: ${p.causa} ya es elegible para intervenir, no para verificar`);
+      r.rechazar(elemento, 'causa_ya_elegible_intervencion', `${elemento}: ${p.causa} ya es elegible para intervenir, no para verificar`);
       continue;
     }
     if ([p.queRevisar, p.conQuien, p.confirmaSi, p.descartaSi].some(vacio)) {
@@ -72,8 +105,9 @@ export function aplicarVerificaciones(
     }
     let ok = true;
     const pasos: PasoPDSA[] = [];
+    const permitidos = evidenciaDeCausa(vista, p.causa);
     for (const paso of p.pasos) {
-      const punteros = r.punteros(`${elemento}, paso ${paso.fase}`, paso.punteros);
+      const punteros = r.punteros(`${elemento}, paso ${paso.fase}`, paso.punteros, permitidos);
       if (!punteros) { ok = false; break; }
       pasos.push({ fase: paso.fase, texto: paso.texto.trim(), responsable: paso.responsable.trim(), punteros });
     }
@@ -105,7 +139,7 @@ export function aplicarAcciones(
     if (vacio(p.texto)) { r.rechazar(elemento, 'campo_vacio', `${elemento}: texto vacío`); return; }
     if (!CUADRANTES.includes(p.cuadrante)) { r.rechazar(elemento, 'cuadrante_invalido', `${elemento}: cuadrante "${String(p.cuadrante)}" fuera de la matriz`); return; }
     if (!ESFUERZOS.includes(p.esfuerzo)) { r.rechazar(elemento, 'campo_vacio', `${elemento}: esfuerzo fuera del enum bajo/medio/alto`); return; }
-    const punteros = r.punteros(elemento, p.punteros);
+    const punteros = r.punteros(elemento, p.punteros, evidenciaDeCausa(vista, p.causa));
     if (!punteros) return;
     pendientes.push({ propuesta: p, punteros, orden, evaluada });
   });
@@ -126,6 +160,7 @@ export function smartDe(p: IndicadorPropuesto): { completa: boolean; faltan: str
   if (vacio(p.definicion)) faltan.push('sin definición');
   if (vacio(p.formula) || !(/[/÷]/.test(p.formula) || /numerador/i.test(p.formula))) faltan.push('fórmula sin numerador y denominador');
   if (vacio(p.unidad)) faltan.push('sin unidad');
+  if (vacio(p.lineaBase)) faltan.push('sin línea base');
   if (vacio(p.meta) || !/\d/.test(p.meta)) faltan.push('meta sin cifra');
   if (vacio(p.plazo)) faltan.push('sin plazo');
   if (vacio(p.responsable)) faltan.push('sin responsable');
@@ -146,13 +181,20 @@ export function aplicarIndicadores(
       r.rechazar(elemento, 'campo_vacio', `${elemento}: falta nombre, definición o fórmula`);
       continue;
     }
-    const punteros = r.punteros(elemento, p.punteros);
+    const punteros = r.punteros(elemento, p.punteros, evidenciaDeCausa(vista, p.causa));
     if (!punteros) continue;
+    // Línea base inventada o sin cifras: se anula y la ficha queda SMART incompleta, no se descarta.
+    const lineaBase = lineaBaseSostenida(vista, punteros, p.lineaBase);
+    const smart = smartDe({ ...p, lineaBase });
+    if (p.lineaBase?.trim() && !lineaBase) {
+      smart.faltan = smart.faltan.map((f) => (f === 'sin línea base' ? 'línea base sin sustento en las citas señaladas' : f));
+      smart.completa = false;
+    }
     salida.push({
       id: `K${salida.length + 1}`, nombre: p.nombre.trim(), definicion: p.definicion.trim(), formula: p.formula.trim(),
-      unidad: (p.unidad ?? '').trim(), lineaBase: p.lineaBase?.trim() ? p.lineaBase.trim() : null,
+      unidad: (p.unidad ?? '').trim(), lineaBase,
       meta: (p.meta ?? '').trim(), plazo: (p.plazo ?? '').trim(), frecuencia: p.frecuencia,
-      responsable: (p.responsable ?? '').trim(), causa: p.causa, punteros, smart: smartDe(p),
+      responsable: (p.responsable ?? '').trim(), causa: p.causa, punteros, smart,
     });
   }
   return { indicadores: salida, rechazos: r.rechazos };

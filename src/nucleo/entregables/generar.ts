@@ -8,22 +8,27 @@ import { LISTAS_CAMBIO, construirMatriz } from './matriz';
 import { calcularPareto } from './pareto';
 import type { AccionPropuesta, EntregablesCaso, IndicadorPropuesto, VerificacionPropuesta } from './tipos';
 
+// JSON estable: claves ordenadas en cada nivel, para que la huella no dependa del orden de inserción.
+function estable(valor: unknown): string {
+  if (Array.isArray(valor)) return `[${valor.map(estable).join(',')}]`;
+  if (valor && typeof valor === 'object') {
+    const entradas = Object.entries(valor as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
+    return `{${entradas.map(([k, v]) => `${JSON.stringify(k)}:${estable(v)}`).join(',')}}`;
+  }
+  return JSON.stringify(valor) ?? 'null';
+}
+
+// Huella de TODO lo que alimenta los entregables: el estado completo (afirmaciones con texto,
+// tema, rol y especificidad; desviación, Es/No Es, Weisbord, causas con enunciado y evidencia,
+// juicios, solicitudes, traza), las causas evaluadas, los niveles y el criterio. Cualquier
+// cambio en esos datos invalida lo guardado; el gasto de la vista queda fuera a propósito.
 export function huellaDeEstado(vista: VistaAgente): string {
-  const datos = {
-    afirmaciones: vista.estado.afirmaciones.map((a) => a.id).sort(),
-    niveles: Object.fromEntries(
-      Object.entries(vista.niveles)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([id, n]) => [id, n.nivel]),
-    ),
-    confirmadas: [...vista.estado.confirmadas].sort(),
-    causas: vista.causas
-      .map((c) => ({ id: c.id, nivel: c.nivel, estado: c.estado, contradicciones: [...c.contradicciones].sort(), principal: c.principal }))
-      .sort((a, b) => a.id.localeCompare(b.id)),
-    solicitudes: vista.estado.solicitudes.map((s) => s.id).sort(),
-    verificaciones: vista.estado.verificaciones.map((v) => v.causa).sort(),
-  };
-  return JSON.stringify(datos);
+  return estable({
+    estado: vista.estado,
+    causas: vista.causas,
+    niveles: vista.niveles,
+    criterio: vista.criterio,
+  });
 }
 
 export function generarEntregables(

@@ -103,7 +103,8 @@ export interface ItemGuia {
 export type MotivoRechazoEntregable =
   | 'puntero_inexistente' | 'sin_punteros' | 'causa_inexistente'
   | 'causa_no_elegible_intervencion' | 'causa_descartada'
-  | 'campo_vacio' | 'cuadrante_invalido';
+  | 'campo_vacio' | 'cuadrante_invalido'
+  | 'puntero_no_pertinente' | 'causa_ya_elegible_intervencion';
 
 export interface RechazoEntregable { elemento: string; motivo: MotivoRechazoEntregable; detalle: string; }
 

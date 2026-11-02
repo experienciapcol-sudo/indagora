@@ -23,6 +23,8 @@ export function PanelEntregables({ vista }: { vista: VistaAgente }) {
   const [generando, setGenerando] = useState(false);
   const [error, setError] = useState('');
   const control = useRef<AbortController | null>(null);
+  // Secuencia de generación: una respuesta GET tardía no puede pisar un POST ya resuelto.
+  const secuencia = useRef(0);
 
   const huella = useMemo(() => huellaDeEstado(vista), [vista]);
   const agenteId = vista.estado.id;
@@ -32,8 +34,10 @@ export function PanelEntregables({ vista }: { vista: VistaAgente }) {
     if (!visible) return;
     const controlador = new AbortController();
     control.current = controlador;
+    const miSecuencia = secuencia.current;
     obtenerEntregables(agenteId, controlador.signal)
       .then((r) => {
+        if (secuencia.current !== miSecuencia) return; // ya se generó algo más nuevo
         if (!r) {
           setEntregables(null);
           setDesactualizado(false);
@@ -54,6 +58,8 @@ export function PanelEntregables({ vista }: { vista: VistaAgente }) {
   async function generar() {
     setGenerando(true);
     setError('');
+    secuencia.current += 1;
+    control.current?.abort(); // invalida el GET inicial si aún estaba en curso
     const controlador = new AbortController();
     control.current = controlador;
     try {

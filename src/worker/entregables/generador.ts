@@ -67,6 +67,11 @@ export async function generarEntregablesDelCaso(deps: Dependencias, sesion: stri
     demo ||= esDemo;
     if (costoUsd >= TECHO_ENTREGABLES_USD) throw new CostoEntregablesExcedido(costoUsd);
   };
+  // Autorización previa entre llamadas: nunca se inicia otra llamada con el techo ya alcanzado.
+  // (El cruce dentro de la llamada en curso solo puede evitarlo una reserva previa en llamarMeta.)
+  const autorizarSiguiente = () => {
+    if (costoUsd >= TECHO_ENTREGABLES_USD) throw new CostoEntregablesExcedido(costoUsd);
+  };
 
   let verificaciones: VerificacionPropuesta[] = [];
   if (paraVerificar.length > 0) {
@@ -80,6 +85,7 @@ export async function generarEntregablesDelCaso(deps: Dependencias, sesion: stri
         })),
       }) as z.ZodType<{ verificaciones: VerificacionModelo[] }>,
     );
+    autorizarSiguiente();
     const r = await llamar(deps, sesion, vista, 'entregables:verificaciones', tareaVerificacionEntregables(vista, paraVerificar), salida, 3000);
     sumar(r.costoUsd, r.demo);
     verificaciones = r.datos.verificaciones.map((v) => ({
@@ -100,6 +106,7 @@ export async function generarEntregablesDelCaso(deps: Dependencias, sesion: stri
         })),
       }) as z.ZodType<{ acciones: AccionModelo[] }>,
     );
+    autorizarSiguiente();
     const r = await llamar(deps, sesion, vista, 'entregables:intervenciones', tareaIntervencionEntregables(vista, elegible), salida, 3000);
     sumar(r.costoUsd, r.demo);
     acciones = r.datos.acciones.map((a) => ({ causa: a.causa, texto: a.texto, cuadrante: a.cuadrante, esfuerzo: a.esfuerzo, punteros: a.punteros.filter((id) => id !== 'ninguna') }));
@@ -120,6 +127,7 @@ export async function generarEntregablesDelCaso(deps: Dependencias, sesion: stri
         })),
       }) as z.ZodType<{ indicadores: IndicadorModelo[] }>,
     );
+    autorizarSiguiente();
     const r = await llamar(deps, sesion, vista, 'entregables:indicadores', tareaIndicadoresEntregables(vista, conPlan), salida, 4000);
     sumar(r.costoUsd, r.demo);
     const porCausa = new Map<string, number>();
