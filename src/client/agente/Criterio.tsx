@@ -1,5 +1,6 @@
 import type { Causa, EstadoCriterio } from '../../nucleo/agente/tipos';
 import { TEXTOS_AGENTE } from './textos';
+import { IconoCheck, IconoInfo } from '../Iconos';
 
 // El criterio de paro lo evalúa el código; aquí solo se muestra qué cumple y qué falta.
 export function Criterio({ criterio, causas }: { criterio: EstadoCriterio; causas: readonly Causa[] }) {
@@ -11,7 +12,7 @@ export function Criterio({ criterio, causas }: { criterio: EstadoCriterio; causa
       <header className="tarjeta-ag__cabeza">
         <h3 id="t-criterio">{K.titulo}</h3>
         <span className={`criterio__estado${criterio.cumplido ? ' criterio__estado--ok' : ''}`}>
-          <span aria-hidden="true">{criterio.cumplido ? '✓' : '○'}</span> {criterio.cumplido ? K.cumplido : K.enCurso}
+          {criterio.cumplido ? <IconoCheck /> : <IconoInfo />} {criterio.cumplido ? K.cumplido : K.enCurso}
         </span>
       </header>
       <p className="ayuda">{K.ayuda}</p>
@@ -30,14 +31,14 @@ export function Criterio({ criterio, causas }: { criterio: EstadoCriterio; causa
       <ul className="criterio__lista" aria-label={`${K.cumplidos} y ${K.faltantes.toLowerCase()}`}>
         {criterio.cumplidos.map((c, i) => (
           <li key={`c${i}`} className="criterio__item criterio__item--ok">
-            <span aria-hidden="true">✓</span>
+            <span><IconoCheck /></span>
             <span className="solo-lectores">{K.cumplidos}: </span>
             {c}
           </li>
         ))}
         {criterio.faltantes.map((c, i) => (
           <li key={`f${i}`} className="criterio__item criterio__item--falta">
-            <span aria-hidden="true">○</span>
+            <span><IconoInfo /></span>
             <span className="solo-lectores">{K.faltantes}: </span>
             {c}
           </li>

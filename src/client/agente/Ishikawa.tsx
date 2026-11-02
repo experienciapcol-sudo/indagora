@@ -2,6 +2,8 @@ import type { Causa, CausaEvaluada, Desviacion, EstadoCausa, Seleccion } from '.
 import { ListaChips, NivelMini } from './ChipEvidencia';
 import { agruparPorEspina, type CausaEnEspina } from './logica';
 import { TEXTOS_AGENTE } from './textos';
+import type { ReactNode } from 'react';
+import { IconoAlerta, IconoCheck, IconoInfo, IconoX } from '../Iconos';
 
 interface Props {
   desviacion: Desviacion | null;
@@ -10,7 +12,7 @@ interface Props {
   evaluadas: readonly CausaEvaluada[];
 }
 
-const ICONO: Record<EstadoCausa, string> = { sin_probar: '○', explica_todo: '✓', descartada: '✗', incompleta: '◐' };
+const ICONO: Record<EstadoCausa, ReactNode> = { sin_probar: <IconoInfo />, explica_todo: <IconoCheck />, descartada: <IconoX />, incompleta: <IconoAlerta /> };
 
 // Diagrama de espina de pescado hecho con CSS: la cabeza a la derecha es la desviación; seis
 // espinas, tres arriba y tres abajo, cada una con sus causas. En pantallas angostas se vuelve
@@ -64,7 +66,7 @@ function TarjetaCausa({ causa, evaluada }: CausaEnEspina) {
         <span className="id">{causa.id}</span>
         <NivelMini nivel={evaluada?.nivel ?? 0} />
         <span className="causa__estado">
-          <span aria-hidden="true">{ICONO[estado]}</span> {TEXTOS_AGENTE.estadosCausa[estado]}
+          {ICONO[estado]} {TEXTOS_AGENTE.estadosCausa[estado]}
         </span>
       </p>
       {principal && <p className="causa__principal">{I.principal}</p>}

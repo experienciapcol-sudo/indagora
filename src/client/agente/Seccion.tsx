@@ -3,6 +3,7 @@ import type { Casilla } from '../../nucleo/agente/tipos';
 import { ListaChips } from './ChipEvidencia';
 import { casillaVacia } from './logica';
 import { TEXTOS_AGENTE } from './textos';
+import { IconoInfo } from '../Iconos';
 
 interface Props {
   id: string;
@@ -20,7 +21,7 @@ export function Seccion({ id, folio, titulo, ayuda, vacia, children }: Props) {
       <header className="sec-ag__cabeza">
         <span className="folio" aria-hidden="true">{folio}</span>
         <h3 id={`t-${id}`}>{titulo}</h3>
-        {vacia && <span className="sec-ag__aun">{TEXTOS_AGENTE.aunNo}</span>}
+        {vacia && <span className="sec-ag__aun"><IconoInfo />{TEXTOS_AGENTE.aunNo}</span>}
       </header>
       {ayuda && <p className="ayuda">{ayuda}</p>}
       {!vacia && <div className="sec-ag__cuerpo">{children}</div>}

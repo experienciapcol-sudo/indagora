@@ -4,6 +4,7 @@ import { formatoSegundos, formatoUsd } from '../sesion';
 import { ListaChips } from './ChipEvidencia';
 import { contarRechazos, parametrosLegibles } from './logica';
 import { TEXTOS_AGENTE } from './textos';
+import { IconoAlerta, IconoCheck, IconoFlecha, IconoInfo, IconoParar, IconoReloj, IconoX } from '../Iconos';
 
 interface Props {
   traza: readonly EventoTraza[];
@@ -36,6 +37,7 @@ export function ConsolaTraza({ traza, pensando }: Props) {
       <header className="consola__cabeza">
         <h3 id="t-consola">{C.titulo}</h3>
         <p className={`consola__rechazos${total > 0 ? ' consola__rechazos--hay' : ''}`}>
+          {total > 0 ? <IconoX /> : <IconoInfo />}
           <strong>{total > 0 ? C.contadorRechazos(total) : C.contadorCero}</strong>
           {total > 0 && <span>{C.desglose(porOrigen.guarda, porOrigen.evidencia, porOrigen.verificador)}</span>}
         </p>
@@ -64,7 +66,7 @@ export function ConsolaTraza({ traza, pensando }: Props) {
           <div>
             {traza.length === 0 || traza[traza.length - 1].paso !== pensando ? <p className="consola__paso">{C.paso(pensando)}</p> : null}
             <p className="evento evento--pensando" role="status">
-              <span className="pulso" aria-hidden="true"><i /><i /><i /></span>
+              <span className="evento__marca"><IconoReloj /></span>
               <span className="evento__cuerpo">
                 {C.pensando(pensando)} <span className="evento__nota">{C.pensandoAyuda}</span>
               </span>
@@ -98,7 +100,7 @@ function Evento({ e }: { e: EventoTraza }) {
     const parametros = parametrosLegibles(e.parametros);
     return (
       <article className="evento evento--decision">
-        <span className="evento__marca" aria-hidden="true">→</span>
+        <span className="evento__marca"><IconoFlecha /></span>
         <div className="evento__cuerpo">
           <p className="evento__titulo">
             <span className="evento__rotulo">{C.decide}</span>
@@ -118,7 +120,7 @@ function Evento({ e }: { e: EventoTraza }) {
   if (e.tipo === 'rechazo') {
     return (
       <article className="evento evento--rechazo" role="group" aria-label={`${C.rechazado}: ${T.motivos[e.motivo]}`}>
-        <span className="evento__marca" aria-hidden="true">✕</span>
+        <span className="evento__marca"><IconoX /></span>
         <div className="evento__cuerpo">
           <p className="evento__titulo">
             <span className="evento__sello">{C.rechazado}</span>
@@ -139,7 +141,7 @@ function Evento({ e }: { e: EventoTraza }) {
   if (e.tipo === 'resultado') {
     return (
       <article className="evento evento--resultado">
-        <span className="evento__marca" aria-hidden="true">✓</span>
+        <span className="evento__marca"><IconoCheck /></span>
         <div className="evento__cuerpo">
           <p className="evento__titulo">
             <span className="evento__rotulo">{C.resultado}</span>
@@ -159,7 +161,7 @@ function Evento({ e }: { e: EventoTraza }) {
   if (e.tipo === 'indicacion') {
     return (
       <article className="evento evento--indicacion">
-        <span className="evento__marca" aria-hidden="true">»</span>
+        <span className="evento__marca"><IconoFlecha /></span>
         <div className="evento__cuerpo">
           <p className="evento__titulo">
             <span className="evento__rotulo">{C.indicacion}</span>
@@ -173,7 +175,7 @@ function Evento({ e }: { e: EventoTraza }) {
   if (e.tipo === 'fin') {
     return (
       <article className="evento evento--fin" role="group" aria-label={T.fin.titulo}>
-        <span className="evento__marca" aria-hidden="true">■</span>
+        <span className="evento__marca"><IconoParar /></span>
         <div className="evento__cuerpo">
           <p className="evento__titulo">
             <strong>{T.fin.motivos[e.motivo]}</strong>
@@ -186,7 +188,7 @@ function Evento({ e }: { e: EventoTraza }) {
 
   return (
     <article className="evento evento--error" role="group" aria-label={C.errorFila}>
-      <span className="evento__marca" aria-hidden="true">!</span>
+      <span className="evento__marca"><IconoAlerta /></span>
       <div className="evento__cuerpo">
         <p className="evento__titulo">
           <span className="evento__sello">{C.errorFila}</span>

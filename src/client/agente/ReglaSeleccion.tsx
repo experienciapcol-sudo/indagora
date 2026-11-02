@@ -1,5 +1,6 @@
 import type { Seleccion } from '../../nucleo/agente/tipos';
 import { TEXTOS_AGENTE } from './textos';
+import { IconoAjuste, IconoCheck, IconoInfo } from '../Iconos';
 
 // La ruta y las seis herramientas del método, con la razón de cada una. La regla es del código.
 export function ReglaSeleccion({ seleccion }: { seleccion: Seleccion }) {
@@ -12,7 +13,7 @@ export function ReglaSeleccion({ seleccion }: { seleccion: Seleccion }) {
           <strong>{S.rutas[seleccion.ruta]}</strong>
         </p>
         <p className="seleccion__ayuda">{S.rutaAyuda[seleccion.ruta]}</p>
-        <p className="seleccion__codigo">{S.delCodigo}</p>
+        <p className="seleccion__codigo"><IconoAjuste />{S.delCodigo}</p>
       </div>
 
       {seleccion.razones.length > 0 && (
@@ -37,7 +38,7 @@ export function ReglaSeleccion({ seleccion }: { seleccion: Seleccion }) {
           return (
             <li key={h.herramienta} className={`herramienta${h.elegida ? ' herramienta--elegida' : ''}`}>
               <span className="herramienta__estado">
-                <span aria-hidden="true">{h.elegida ? '●' : '○'}</span> {h.elegida ? S.elegida : S.noElegida}
+                {h.elegida ? <IconoCheck /> : <IconoInfo />} {h.elegida ? S.elegida : S.noElegida}
               </span>
               <span className="herramienta__nombre">{info.nombre}</span>
               <span className="herramienta__fuente">{info.fuente}</span>

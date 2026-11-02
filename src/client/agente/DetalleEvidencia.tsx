@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Afirmacion, NivelCalculado } from '../../nucleo/tipos';
 import { InsigniaNivel } from '../InsigniaNivel';
 import { TEXTOS_AGENTE } from './textos';
+import { IconoAlerta, IconoX } from '../Iconos';
 
 interface Props {
   id: string;
@@ -64,8 +65,8 @@ export function DetalleEvidencia({ id, afirmacion: a, calculado, todas, confirma
           <h3 id="t-detalle">
             {D.titulo} <span className="id id--grande">{id}</span>
           </h3>
-          <button type="button" className="boton boton--secundario" onClick={onCerrar}>
-            {D.cerrar}
+          <button type="button" className="boton boton--secundario" onClick={onCerrar} aria-label={D.cerrar}>
+            <IconoX />{D.cerrar}
           </button>
         </header>
 
@@ -77,7 +78,7 @@ export function DetalleEvidencia({ id, afirmacion: a, calculado, todas, confirma
               <InsigniaNivel nivel={calculado?.nivel ?? 0} />
               {calculado?.contradicha && (
                 <span className="marca-contradicha">
-                  <span aria-hidden="true">⚑</span> {D.contradicha}
+                  <IconoAlerta /> {D.contradicha}
                 </span>
               )}
             </div>

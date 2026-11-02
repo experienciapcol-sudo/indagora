@@ -3,6 +3,15 @@ import type { Causa, CausaEvaluada, Juicio } from '../../nucleo/agente/tipos';
 import { ListaChips, NivelMini } from './ChipEvidencia';
 import { juicioDe, type ColumnaPrueba } from './logica';
 import { TEXTOS_AGENTE } from './textos';
+import type { ReactNode } from 'react';
+import { IconoCheck, IconoInfo, IconoX } from '../Iconos';
+
+// Icono por veredicto; el nombre del veredicto sigue yendo en texto y en aria-label.
+function iconoVeredicto(veredicto: string): ReactNode {
+  if (veredicto === 'explica') return <IconoCheck />;
+  if (veredicto === 'no_explica') return <IconoX />;
+  return <IconoInfo />;
+}
 
 interface Props {
   causas: readonly Causa[];
@@ -71,7 +80,7 @@ export function PruebaCausas({ causas, evaluadas, juicios, columnas }: Props) {
                           disabled={!j}
                           onClick={() => setElegida(activa ? null : { causa: causa.id, fila: col.id })}
                         >
-                          <span aria-hidden="true">{v ? v.simbolo : '·'}</span>
+                          {v ? iconoVeredicto(j?.veredicto ?? '') : <span aria-hidden="true">–</span>}
                         </button>
                       </td>
                     );
@@ -102,7 +111,7 @@ export function PruebaCausas({ causas, evaluadas, juicios, columnas }: Props) {
           <div className={`lectura__cuerpo lectura__cuerpo--${juicioElegido.veredicto}`}>
             <p className="lectura__cabeza">
               <span className="lectura__veredicto">
-                <span aria-hidden="true">{TEXTOS_AGENTE.veredictos[juicioElegido.veredicto].simbolo}</span> {TEXTOS_AGENTE.veredictos[juicioElegido.veredicto].nombre}
+                {iconoVeredicto(juicioElegido.veredicto)} {TEXTOS_AGENTE.veredictos[juicioElegido.veredicto].nombre}
               </span>
               <span className="id">{elegida.causa}</span> {P.contra} <span className="id">{elegida.fila}</span>
               <button type="button" className="boton boton--texto lectura__cerrar" onClick={() => setElegida(null)}>

@@ -1,6 +1,7 @@
 import type { Causa, Intervencion, SolicitudDocumento, Verificacion } from '../../nucleo/agente/tipos';
 import { ListaChips } from './ChipEvidencia';
 import { TEXTOS_AGENTE } from './textos';
+import { IconoCheck, IconoDoc, IconoReloj } from '../Iconos';
 
 interface Props {
   verificaciones: readonly Verificacion[];
@@ -29,6 +30,7 @@ export function Verificaciones({ verificaciones, intervenciones, solicitudes, ca
           <ul className="plan__lista">
             {verificaciones.map((v, i) => (
               <li key={`${v.causa}-${i}`} className="plan__tarjeta plan__tarjeta--verificar">
+                <span className="marca marca--verificar"><IconoReloj />{V.verificar}</span>
                 <LineaCausa id={v.causa} enunciado={enunciado(v.causa)} />
                 <dl>
                   <div><dt>{V.queRevisar}</dt><dd>{v.queRevisar}</dd></div>
@@ -49,6 +51,7 @@ export function Verificaciones({ verificaciones, intervenciones, solicitudes, ca
           <ul className="plan__lista">
             {intervenciones.map((x, i) => (
               <li key={`${x.causa}-${i}`} className="plan__tarjeta plan__tarjeta--intervenir">
+                <span className="marca marca--intervenir"><IconoCheck />{V.intervenciones}</span>
                 <LineaCausa id={x.causa} enunciado={enunciado(x.causa)} />
                 <p className="plan__accion">{x.accion}</p>
                 <ListaChips ids={x.evidencia} />
@@ -64,6 +67,7 @@ export function Verificaciones({ verificaciones, intervenciones, solicitudes, ca
           <ul className="plan__lista">
             {solicitudes.map((s) => (
               <li key={s.id} className="plan__tarjeta plan__tarjeta--documento">
+                <span className="marca marca--documento"><IconoDoc />{V.documentos}</span>
                 <p className="plan__causa">
                   <span className="id">{s.id}</span> <span>{s.descripcion}</span>
                 </p>

@@ -2,6 +2,7 @@ import { createContext, useContext } from 'react';
 import type { NivelCalculado } from '../../nucleo/tipos';
 import { TEXTOS_AGENTE } from './textos';
 import { NOMBRE_NIVEL } from '../../nucleo/niveles';
+import { IconoInfo } from '../Iconos';
 
 // Las secciones comparten los niveles calculados y la forma de abrir el detalle de una afirmación.
 export interface ContextoEvidencia {
@@ -20,7 +21,7 @@ export function ChipEvidencia({ id }: { id: string }) {
     return (
       <span className="chip-ev chip-ev--ajena" title={T.desconocida(id)}>
         <span className="chip-ev__id">{id}</span>
-        <span className="chip-ev__n" aria-hidden="true">?</span>
+        <span className="chip-ev__n"><IconoInfo /></span>
       </span>
     );
   }

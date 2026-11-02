@@ -1,8 +1,10 @@
 import { CASILLAS_WEISBORD, type HallazgoWeisbord } from '../../nucleo/agente/tipos';
 import { CasillaVista } from './Seccion';
 import { TEXTOS_AGENTE } from './textos';
+import type { ReactNode } from 'react';
+import { IconoAlerta, IconoCheck, IconoInfo } from '../Iconos';
 
-const SIMBOLO = { brecha: '▲', sin_brecha: '●', sin_datos: '○' } as const;
+const SIMBOLO: Record<string, ReactNode> = { brecha: <IconoAlerta />, sin_brecha: <IconoCheck />, sin_datos: <IconoInfo /> };
 
 // Las seis casillas, siempre en el mismo orden; las que el agente no ha barrido salen sin datos.
 export function Weisbord({ hallazgos }: { hallazgos: readonly HallazgoWeisbord[] }) {
@@ -17,7 +19,7 @@ export function Weisbord({ hallazgos }: { hallazgos: readonly HallazgoWeisbord[]
             <p className="weisbord__cabeza">
               <strong>{TEXTOS_AGENTE.casillasWeisbord[casilla]}</strong>
               <span className="weisbord__estado">
-                <span aria-hidden="true">{SIMBOLO[estado]}</span> {W.estados[estado]}
+                {SIMBOLO[estado]} {W.estados[estado]}
               </span>
             </p>
             <CasillaVista casilla={h?.hallazgo} />

@@ -20,7 +20,6 @@ import { Weisbord } from './Weisbord';
 import './agente.css';
 
 const CLAVE_SESION = 'indagora-agente';
-const FOLIOS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'] as const;
 
 // El id del agente vive en la sesión del navegador para sobrevivir a una recarga.
 const guardarId = (id: string | null) => {
@@ -156,10 +155,10 @@ export function PanelAgente({ alGasto }: { alGasto?: (g: VistaAgente['gasto']) =
   const terminado = e?.terminado ?? null;
   const ocupado = iniciando || corriendo !== null;
 
-  // Secciones del método en su orden, con su folio.
+  // Secciones del método en su orden, con numeración arábiga funcional (§5.6).
   const secciones = e ? seccionesDelMetodo(e.seleccion, e.esNoEs, e.weisbord) : null;
   let folio = 0;
-  const siguienteFolio = () => FOLIOS[folio++] ?? '';
+  const siguienteFolio = () => String(++folio).padStart(2, '0');
 
   const columnas = e
     ? columnasDePrueba(e.esNoEs, e.weisbord, e.juicios, (d) => T.dimensiones[d], (c) => T.casillasWeisbord[c])
