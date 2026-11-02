@@ -61,8 +61,9 @@ function leerTurnos(fuente: FuenteEntrada): TurnoCrudo[] {
   return turnos.filter((t) => t.lineas.length > 0).map((t, i) => ({ ...t, numero: i + 1 }));
 }
 
-// Una etiqueta cuenta si es la del entrevistador, el rol de la fuente o aparece al menos dos
-// veces. Así una frase con dos puntos que sale una vez no se confunde con un hablante.
+// Una etiqueta cuenta si es la del entrevistador, el rol de la fuente, la asignó el consultor
+// o aparece al menos dos veces. Así una frase con dos puntos que sale una vez no se confunde
+// con un hablante.
 function etiquetasValidas(lineas: string[], fuente: FuenteEntrada): Set<string> {
   const cuenta = new Map<string, number>();
   for (const l of lineas) {
@@ -71,9 +72,10 @@ function etiquetasValidas(lineas: string[], fuente: FuenteEntrada): Set<string> 
     const e = normal(m[1]);
     cuenta.set(e, (cuenta.get(e) ?? 0) + 1);
   }
+  const conocidos = new Set((fuente.hablantesConocidos ?? []).map(normal));
   const validas = new Set<string>();
   for (const [e, n] of cuenta) {
-    if (n >= 2 || e === normal(fuente.rol) || (fuente.entrevistador && e === normal(fuente.entrevistador)) || ENTREVISTADOR_COMUN.test(e)) validas.add(e);
+    if (n >= 2 || conocidos.has(e) || e === normal(fuente.rol) || (fuente.entrevistador && e === normal(fuente.entrevistador)) || ENTREVISTADOR_COMUN.test(e)) validas.add(e);
   }
   return validas;
 }
