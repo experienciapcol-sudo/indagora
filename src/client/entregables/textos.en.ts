@@ -12,7 +12,7 @@ export const TEXTOS_ENTREGABLES_EN: TextosEntregables = {
   aunNoAyuda: 'When the agent finishes (by criterion or waiting for the consultant) you can generate them from the current state.',
   desactualizado: 'These deliverables no longer match the current state: generate them again',
   demo: 'Generated in demo mode, at no cost',
-  costo: (usd: number) => `Generation cost: ${usd.toFixed(4)} USD`,
+  costo: (usd: number) => `Generation cost: ${usd !== 0 && Math.abs(usd) < 0.01 ? usd.toFixed(3) : usd.toFixed(2)} USD`,
   generadoEn: (fecha: string) => `Generated: ${fecha}`,
   errorCargar: 'The saved deliverables could not be loaded.',
   errorGenerar: (mensaje: string) => `The deliverables could not be generated: ${mensaje}`,

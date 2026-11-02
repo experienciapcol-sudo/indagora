@@ -228,7 +228,6 @@ export default function App() {
           {fuentesListas.length > 0 && (
             <section className="panel panel--resultados" aria-labelledby="t-resultados">
               <div className="panel__cabeza">
-                <span className="folio" aria-hidden="true">III</span>
                 <h2 id="t-resultados">{T.resultados.titulo}</h2>
                 <button type="button" className="boton boton--secundario panel__accion" onClick={exportar}>
                   {T.exportar.boton}

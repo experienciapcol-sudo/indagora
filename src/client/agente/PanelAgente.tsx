@@ -155,10 +155,8 @@ export function PanelAgente({ alGasto }: { alGasto?: (g: VistaAgente['gasto']) =
   const terminado = e?.terminado ?? null;
   const ocupado = iniciando || corriendo !== null;
 
-  // Secciones del método en su orden, con numeración arábiga funcional (§5.6).
+  // Secciones del método en su orden (sin folios: el título basta, tarea 22).
   const secciones = e ? seccionesDelMetodo(e.seleccion, e.esNoEs, e.weisbord) : null;
-  let folio = 0;
-  const siguienteFolio = () => String(++folio).padStart(2, '0');
 
   const columnas = e
     ? columnasDePrueba(e.esNoEs, e.weisbord, e.juicios, (d) => T.dimensiones[d], (c) => T.casillasWeisbord[c])
@@ -251,37 +249,36 @@ export function PanelAgente({ alGasto }: { alGasto?: (g: VistaAgente['gasto']) =
                 <Presupuesto presupuesto={e.presupuesto} gasto={vista.gasto} />
               </div>
 
-              <Seccion id="desviacion" folio={siguienteFolio()} titulo={T.secciones.desviacion.titulo} ayuda={T.secciones.desviacion.ayuda} vacia={e.desviacion === null}>
+              <Seccion id="desviacion" titulo={T.secciones.desviacion.titulo} ayuda={T.secciones.desviacion.ayuda} vacia={e.desviacion === null}>
                 {e.desviacion && <VistaDesviacion desviacion={e.desviacion} />}
               </Seccion>
 
-              <Seccion id="seleccion" folio={siguienteFolio()} titulo={T.secciones.seleccion.titulo} ayuda={T.secciones.seleccion.ayuda} vacia={e.seleccion === null}>
+              <Seccion id="seleccion" titulo={T.secciones.seleccion.titulo} ayuda={T.secciones.seleccion.ayuda} vacia={e.seleccion === null}>
                 {e.seleccion && <ReglaSeleccion seleccion={e.seleccion} />}
               </Seccion>
 
               {secciones?.esNoEs && (
-                <Seccion id="esnoes" folio={siguienteFolio()} titulo={T.secciones.esNoEs.titulo} ayuda={T.secciones.esNoEs.ayuda} vacia={!e.esNoEs || e.esNoEs.length === 0}>
+                <Seccion id="esnoes" titulo={T.secciones.esNoEs.titulo} ayuda={T.secciones.esNoEs.ayuda} vacia={!e.esNoEs || e.esNoEs.length === 0}>
                   {e.esNoEs && <TablaEsNoEs filas={e.esNoEs} />}
                 </Seccion>
               )}
 
               {secciones?.weisbord && (
-                <Seccion id="weisbord" folio={siguienteFolio()} titulo={T.secciones.weisbord.titulo} ayuda={T.secciones.weisbord.ayuda} vacia={!e.weisbord || e.weisbord.length === 0}>
+                <Seccion id="weisbord" titulo={T.secciones.weisbord.titulo} ayuda={T.secciones.weisbord.ayuda} vacia={!e.weisbord || e.weisbord.length === 0}>
                   {e.weisbord && <Weisbord hallazgos={e.weisbord} />}
                 </Seccion>
               )}
 
-              <Seccion id="ishikawa" folio={siguienteFolio()} titulo={T.secciones.ishikawa.titulo} ayuda={T.secciones.ishikawa.ayuda} vacia={e.causas.length === 0}>
+              <Seccion id="ishikawa" titulo={T.secciones.ishikawa.titulo} ayuda={T.secciones.ishikawa.ayuda} vacia={e.causas.length === 0}>
                 <Ishikawa desviacion={e.desviacion} espinas={e.seleccion?.espinas ?? 'seis_m'} causas={e.causas} evaluadas={vista.causas} />
               </Seccion>
 
-              <Seccion id="prueba" folio={siguienteFolio()} titulo={T.secciones.prueba.titulo} ayuda={T.secciones.prueba.ayuda} vacia={e.causas.length === 0 || e.juicios.length === 0}>
+              <Seccion id="prueba" titulo={T.secciones.prueba.titulo} ayuda={T.secciones.prueba.ayuda} vacia={e.causas.length === 0 || e.juicios.length === 0}>
                 <PruebaCausas causas={e.causas} evaluadas={vista.causas} juicios={e.juicios} columnas={columnas} />
               </Seccion>
 
               <Seccion
                 id="verificaciones"
-                folio={siguienteFolio()}
                 titulo={T.secciones.verificaciones.titulo}
                 ayuda={T.secciones.verificaciones.ayuda}
                 vacia={e.verificaciones.length + e.intervenciones.length + e.solicitudes.length === 0}

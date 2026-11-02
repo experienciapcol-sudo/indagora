@@ -15,7 +15,7 @@ export const TEXTOS_ENTREGABLES_ES = {
   aunNoAyuda: 'Cuando el agente termine (por criterio o en espera del consultor) puedes generarlos desde el estado actual.',
   desactualizado: 'Estos entregables ya no corresponden al estado actual: vuelve a generarlos',
   demo: 'Generado en modo demostración, sin costo',
-  costo: (usd: number) => `Costo de generación: ${usd.toFixed(4)} USD`,
+  costo: (usd: number) => `Costo de generación: ${usd !== 0 && Math.abs(usd) < 0.01 ? usd.toFixed(3) : usd.toFixed(2)} USD`,
   generadoEn: (fecha: string) => `Generado: ${fecha}`,
   errorCargar: 'No se pudieron cargar los entregables guardados.',
   errorGenerar: (mensaje: string) => `No se pudieron generar los entregables: ${mensaje}`,

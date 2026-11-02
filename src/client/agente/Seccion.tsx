@@ -7,7 +7,6 @@ import { IconoInfo } from '../Iconos';
 
 interface Props {
   id: string;
-  folio: string;
   titulo: string;
   ayuda?: string;
   vacia: boolean;
@@ -15,11 +14,10 @@ interface Props {
 }
 
 // Sección del método. Vacía se atenúa y dice «Aún no», para que se vea el avance del agente.
-export function Seccion({ id, folio, titulo, ayuda, vacia, children }: Props) {
+export function Seccion({ id, titulo, ayuda, vacia, children }: Props) {
   return (
     <section className={`sec-ag${vacia ? ' sec-ag--vacia' : ''}`} aria-labelledby={`t-${id}`}>
       <header className="sec-ag__cabeza">
-        <span className="folio" aria-hidden="true">{folio}</span>
         <h3 id={`t-${id}`}>{titulo}</h3>
         {vacia && <span className="sec-ag__aun"><IconoInfo />{TEXTOS_AGENTE.aunNo}</span>}
       </header>

@@ -8,8 +8,12 @@ export type EstadoFuente =
 
 export type EstadosPorFuente = Record<string, EstadoFuente>;
 
-// Seis decimales: una llamada cuesta fracciones de milésima de dólar.
-export const formatoUsd = (n: number) => `${n.toFixed(6)} USD`;
+// Formateador compartido de dinero: 2 decimales si |valor| >= 0.01, 3 si es
+// menor y distinto de cero, y "0.00" para cero (tarea 22, punto 2).
+export const formatoUsd = (n: number) => {
+  const d = n !== 0 && Math.abs(n) < 0.01 ? 3 : 2;
+  return `${n.toFixed(d)} USD`;
+};
 export const formatoSegundos = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 
 // E1, E2… para entrevistas y D1, D2… para documentos. Se toma el mayor usado + 1,

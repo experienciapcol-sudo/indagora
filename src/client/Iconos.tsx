@@ -13,7 +13,7 @@ function clase(nombre: string, extra?: string) {
 
 export function SpriteIconos() {
   return (
-    <svg aria-hidden="true" focusable="false" style={{ display: 'none' }}>
+    <svg aria-hidden="true" focusable="false" style={{ display: 'none' }} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter">
       <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" /></symbol>
       <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></symbol>
       <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 4L2.5 20h19L12 4z" /><path d="M12 10v4.5" /><path d="M12 17.2v.3" /></symbol>
@@ -73,7 +73,7 @@ export function IconoAjuste(p: PropsIcono) { return <Base {...p}><path d="M5 7h9
 export function Icono({ nombre, className }: { nombre: string; className?: string }) {
   const id = nombre.startsWith('i-') ? nombre : `i-${nombre}`;
   return (
-    <svg className={clase('icono', className)} aria-hidden="true" focusable="false">
+    <svg className={clase('icono', className)} aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter">
       <use href={`#${id}`} />
     </svg>
   );
