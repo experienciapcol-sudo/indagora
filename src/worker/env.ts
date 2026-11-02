@@ -8,4 +8,8 @@ export type Bindings = {
   DEMO_MODE: string;
   TOPE_SESION_USD: string;
   TOPE_GLOBAL_USD: string;
+  // Secreto para firmar la cookie de sesión (`wrangler secret`); obligatorio en https.
+  SESION_SECRETO?: string;
+  // "true" habilita POST /api/prueba (comprobación de despliegue); apagado por omisión.
+  PERMITIR_PRUEBA?: string;
 };

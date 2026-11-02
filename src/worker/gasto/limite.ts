@@ -7,9 +7,15 @@ export interface Limite {
   periodoS: number;
 }
 
+// Las filas viven dos días: alcanza para el periodo más largo (un día) sin que los límites
+// por minuto borren los diarios.
+const VIDA_S = 2 * 86_400;
+
 export async function dentroDelLimite(db: D1Database, cliente: string, l: Limite, ahoraMs = Date.now()): Promise<boolean> {
-  const ventana = Math.floor(ahoraMs / 1000 / l.periodoS);
-  const clave = await sha256Hex(`indagora:${cliente}`);
+  const ahoraS = Math.floor(ahoraMs / 1000);
+  // La ventana es el segundo en que empieza; el periodo va en la clave para no mezclar límites.
+  const ventana = Math.floor(ahoraS / l.periodoS) * l.periodoS;
+  const clave = await sha256Hex(`indagora:${l.periodoS}:${cliente}`);
   const [fila] = await db.batch<{ n: number }>([
     db
       .prepare(
@@ -18,8 +24,7 @@ export async function dentroDelLimite(db: D1Database, cliente: string, l: Limite
          RETURNING n`,
       )
       .bind(clave, ventana),
-    // Las ventanas viejas ya no cuentan.
-    db.prepare('DELETE FROM limites WHERE ventana < ?1').bind(ventana - 1),
+    db.prepare('DELETE FROM limites WHERE ventana < ?1').bind(ahoraS - VIDA_S),
   ]);
   const n = fila.results[0]?.n;
   return typeof n === 'number' && n <= l.llamadas;

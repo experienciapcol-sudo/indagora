@@ -14,6 +14,8 @@ const env = (extra: Partial<Bindings> = {}): Bindings => ({
   DEMO_MODE: 'false',
   TOPE_SESION_USD: '0.25',
   TOPE_GLOBAL_USD: '5',
+  SESION_SECRETO: 'secreto-de-prueba',
+  PERMITIR_PRUEBA: 'true',
   ...extra,
 });
 

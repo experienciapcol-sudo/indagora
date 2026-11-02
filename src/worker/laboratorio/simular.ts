@@ -7,8 +7,11 @@ import type { CasoLaboratorio, Intercambio, VerdadLaboratorio } from '../../nucl
 import type { FuenteEntrada } from '../../nucleo/tipos';
 import { promptPersona, salidaRespuestaSimulada } from './prompts';
 import { gastoLabSesion } from './almacenLab';
+import { TopeAlcanzado } from '../gasto/gasto';
 
 export const SUBTOPE_LAB_USD = 0.05;
+// Se revisa en la misma reserva de cada llamada; la lectura previa solo evita llamadas inútiles.
+export const SUBTOPE_LAB = { prefijo: 'lab:', usd: SUBTOPE_LAB_USD };
 
 export interface ResultadoSimulacion {
   intercambios: Intercambio[];
@@ -50,14 +53,21 @@ export async function ejecutarSimulacion(deps: Dependencias, sesion: string, cas
     let fuga = false;
     for (let intento = 0; intento < 2 && respuesta === null; intento++) {
       const r = await llamarMeta(deps, {
-        sesion, proposito: 'lab:simular', rol: 'contributor', esfuerzo: 'minimal', maxTokens: 700,
+        sesion, proposito: 'lab:simular', rol: 'contributor', esfuerzo: 'minimal', maxTokens: 700, subtope: SUBTOPE_LAB,
         mensajes: [
           { role: 'system', content: 'Responde solo como la persona indicada, con los hechos autorizados.' },
           { role: 'user', content: promptPersona(caso, persona.rol, pregunta, autorizados, intento > 0) },
         ],
         salida: salidaRespuestaSimulada,
         clave: `lab:simular:${caso.id}:${persona.id}:${ronda.tipo}:${n}:${intento}`,
+      }).catch((e: unknown) => {
+        if (e instanceof TopeAlcanzado) return null;
+        throw e;
       });
+      if (r === null) {
+        sinPresupuesto = true;
+        break;
+      }
       gastoLabUsd += r.costoUsd;
       const revision = revisarRespuesta(r.datos.respuesta, autorizados, verdad.hechos, verdad.causa.marcadores);
       if (revision.ok) respuesta = r.datos.respuesta;

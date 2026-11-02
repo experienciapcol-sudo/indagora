@@ -16,6 +16,8 @@ export interface FuenteEntrada {
   // Etiqueta del entrevistador en el texto; null = se detecta (Consultor/a, Entrevistador/a…).
   entrevistador: string | null;
   texto: string;
+  // Etiquetas que asignó el consultor: valen como hablante aunque intervengan una sola vez.
+  hablantesConocidos?: string[];
 }
 
 export interface Turno {

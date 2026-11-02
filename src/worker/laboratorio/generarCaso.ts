@@ -4,6 +4,7 @@ import { llamarMeta } from '../meta/cliente';
 import { validarCaso } from '../../nucleo/laboratorio/validar';
 import type { CasoCrudo, CasoLaboratorio, ParametrosLaboratorio, VerdadLaboratorio } from '../../nucleo/laboratorio/tipos';
 import { INSTRUCCION_GENERACION, promptGeneracion, salidaCasoLaboratorio } from './prompts';
+import { SUBTOPE_LAB } from './simular';
 
 export class CasoInvalido extends Error {
   constructor(readonly errores: string[]) { super(`El caso generado no pasó la validación: ${errores.join(' ')}`); this.name = 'CasoInvalido'; }
@@ -14,7 +15,7 @@ export async function generarCaso(deps: Dependencias, sesion: string, p: Paramet
   let costoUsd = 0;
   for (let intento = 1; intento <= 2; intento++) {
     const r = await llamarMeta(deps, {
-      sesion, proposito: 'lab:generar', rol: 'contributor', esfuerzo: 'low', maxTokens: 6000,
+      sesion, proposito: 'lab:generar', rol: 'contributor', esfuerzo: 'low', maxTokens: 6000, subtope: SUBTOPE_LAB,
       mensajes: [
         { role: 'system', content: INSTRUCCION_GENERACION },
         { role: 'user', content: promptGeneracion(p, errores) },

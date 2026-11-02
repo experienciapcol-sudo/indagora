@@ -20,6 +20,7 @@ export const fuenteZ = z.object({
   titulo: z.string().max(120),
   entrevistador: z.string().trim().max(40).nullable(),
   texto: z.string().trim().min(1).max(60_000),
+  hablantesConocidos: z.array(z.string().trim().min(1).max(40)).max(12).optional(),
 });
 
 const peticion = z.object({

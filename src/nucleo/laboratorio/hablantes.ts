@@ -88,6 +88,7 @@ export function aplicarAsignaciones(
     titulo: opciones.titulo ?? `Entrevista con ${principal.rol.trim().toLowerCase()}`,
     entrevistador: entrevistadores[0].rol.trim(),
     texto: lineas.join('\n'),
+    hablantesConocidos: asignaciones.map((a) => a.rol.trim()),
   };
   return { fuente, avisos };
 }

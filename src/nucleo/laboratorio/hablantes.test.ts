@@ -26,8 +26,9 @@ describe('hablantes', () => {
     expect(avisos).toEqual([]);
     expect(fuente?.rol).toBe('Repartidor');
     expect(fuente?.entrevistador).toBe('Entrevistadora');
-    // Pedro queda como continuación de Luis en segmentar hasta que llegue hablantesConocidos;
-    // quien sí conserva turno propio con una línea es la persona principal en una fuente corta:
+    expect(fuente?.hablantesConocidos).toEqual(['Entrevistadora', 'Repartidor', 'Ayudante']);
+    expect(segmentar(fuente!).turnos.some((t) => t.hablante === 'Ayudante')).toBe(true);
+    // La persona principal también conserva turno propio con una sola línea en una fuente corta:
     const corta = aplicarAsignaciones('Ana: ¿Qué pasó?\nLuis: Solo esto.', [
       { etiqueta: 'Ana', rol: 'Entrevistadora', esEntrevistador: true, esPrincipal: false },
       { etiqueta: 'Luis', rol: 'Repartidor', esEntrevistador: false, esPrincipal: true },
