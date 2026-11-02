@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 // Carga de casos: el taller es el caso 0; el resto vive en
 // src/nucleo/casos/evaluacion/*.ts (los escribe otra familia de modelos).
 import { CASO_TALLER } from '../../src/nucleo/casos/taller';
@@ -50,8 +51,8 @@ export function validarCaso(c: CasoEvaluacion): string[] {
 }
 
 export function cargarCasos(): CasoEvaluacion[] {
-  const glob = (import.meta as unknown as { glob: (p: string, o: object) => Record<string, unknown> }).glob;
-  const modulos = glob('../../src/nucleo/casos/evaluacion/*.ts', { eager: true });
+  // Vite reemplaza import.meta.glob al transformar el archivo: va completo, sin alias.
+  const modulos: Record<string, unknown> = import.meta.glob('../../src/nucleo/casos/evaluacion/*.ts', { eager: true });
   const casos: CasoEvaluacion[] = [CASO_TALLER_EVALUACION];
   for (const modulo of Object.values(modulos)) {
     for (const valor of Object.values(modulo as Record<string, unknown>)) {
