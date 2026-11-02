@@ -10,7 +10,7 @@ import { vistaDe } from '../../nucleo/agente/estado';
 import { huellaDeEstado } from '../../nucleo/entregables';
 import { resumen } from '../gasto/gasto';
 import { guardarEntregables, leerEntregables } from '../entregables/almacenEntregables';
-import { CostoEntregablesExcedido, generarEntregablesDelCaso } from '../entregables/generador';
+import { generarEntregablesDelCaso } from '../entregables/generador';
 import { ipDe, type Ambiente } from './sesion';
 
 const LIMITE_GENERAR = { llamadas: 10, periodoS: 60 };
@@ -41,7 +41,6 @@ rutasEntregables.post('/agente/:id/entregables', async (c) => {
     try {
       entregables = await generarEntregablesDelCaso({ env: c.env, db }, sesion, vista);
     } catch (e) {
-      if (e instanceof CostoEntregablesExcedido) return c.json({ error: e.message, costoUsd: e.costoUsd }, 402);
       if (e instanceof TopeAlcanzado) return c.json({ error: 'Tope de gasto alcanzado; no se generaron entregables.' }, 402);
       if (e instanceof ErrorMeta) return c.json({ error: e.message }, 502);
       throw e;

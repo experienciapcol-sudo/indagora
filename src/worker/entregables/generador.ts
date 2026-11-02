@@ -13,13 +13,6 @@ import type { EntregablesCaso } from '../../nucleo/entregables/tipos';
 
 export const TECHO_ENTREGABLES_USD = 0.15;
 
-export class CostoEntregablesExcedido extends Error {
-  constructor(readonly costoUsd: number) {
-    super(`La generación alcanzó el techo de ${TECHO_ENTREGABLES_USD} USD (acumulado: ${costoUsd} USD); no se guardó nada.`);
-    this.name = 'CostoEntregablesExcedido';
-  }
-}
-
 interface VerificacionModelo {
   causa: string; que_revisar: string; con_quien: string; confirma_si: string; descarta_si: string;
   pasos: { fase: PasoPDSA['fase']; texto: string; responsable: string; punteros: string[] }[];
@@ -65,16 +58,13 @@ export async function generarEntregablesDelCaso(deps: Dependencias, sesion: stri
   const sumar = (costo: number, esDemo: boolean) => {
     costoUsd += costo;
     demo ||= esDemo;
-    if (costoUsd >= TECHO_ENTREGABLES_USD) throw new CostoEntregablesExcedido(costoUsd);
   };
-  // Autorización previa entre llamadas: nunca se inicia otra llamada con el techo ya alcanzado.
-  // (El cruce dentro de la llamada en curso solo puede evitarlo una reserva previa en llamarMeta.)
-  const autorizarSiguiente = () => {
-    if (costoUsd >= TECHO_ENTREGABLES_USD) throw new CostoEntregablesExcedido(costoUsd);
-  };
+  // El techo se revisa antes de cada llamada: lo ya pagado se conserva y solo se omiten
+  // las llamadas siguientes.
+  const autorizarSiguiente = () => costoUsd < TECHO_ENTREGABLES_USD;
 
   let verificaciones: VerificacionPropuesta[] = [];
-  if (paraVerificar.length > 0) {
+  if (paraVerificar.length > 0 && autorizarSiguiente()) {
     const pasoZ = z.object({ fase: z.enum(['planear', 'hacer', 'estudiar', 'actuar']), texto: z.string(), responsable: z.string(), punteros: punterosZ() });
     const salida = definirSalida(
       'entregables_verificaciones',
@@ -85,7 +75,6 @@ export async function generarEntregablesDelCaso(deps: Dependencias, sesion: stri
         })),
       }) as z.ZodType<{ verificaciones: VerificacionModelo[] }>,
     );
-    autorizarSiguiente();
     const r = await llamar(deps, sesion, vista, 'entregables:verificaciones', tareaVerificacionEntregables(vista, paraVerificar), salida, 3000);
     sumar(r.costoUsd, r.demo);
     verificaciones = r.datos.verificaciones.map((v) => ({
@@ -95,7 +84,7 @@ export async function generarEntregablesDelCaso(deps: Dependencias, sesion: stri
   }
 
   let acciones: AccionPropuesta[] = [];
-  if (elegible) {
+  if (elegible && autorizarSiguiente()) {
     const salida = definirSalida(
       'entregables_intervenciones',
       z.object({
@@ -106,7 +95,6 @@ export async function generarEntregablesDelCaso(deps: Dependencias, sesion: stri
         })),
       }) as z.ZodType<{ acciones: AccionModelo[] }>,
     );
-    autorizarSiguiente();
     const r = await llamar(deps, sesion, vista, 'entregables:intervenciones', tareaIntervencionEntregables(vista, elegible), salida, 3000);
     sumar(r.costoUsd, r.demo);
     acciones = r.datos.acciones.map((a) => ({ causa: a.causa, texto: a.texto, cuadrante: a.cuadrante, esfuerzo: a.esfuerzo, punteros: a.punteros.filter((id) => id !== 'ninguna') }));
@@ -114,7 +102,7 @@ export async function generarEntregablesDelCaso(deps: Dependencias, sesion: stri
 
   let indicadores: IndicadorPropuesto[] = [];
   // Sin causa elegible se omiten intervención e indicadores de intervención (§3.1 paso 3 del diseño).
-  if (elegible) {
+  if (elegible && autorizarSiguiente()) {
     const conPlan = [elegible, ...paraVerificar.filter((c) => c.id !== elegible.id)];
     const salida = definirSalida(
       'entregables_indicadores',
@@ -127,7 +115,6 @@ export async function generarEntregablesDelCaso(deps: Dependencias, sesion: stri
         })),
       }) as z.ZodType<{ indicadores: IndicadorModelo[] }>,
     );
-    autorizarSiguiente();
     const r = await llamar(deps, sesion, vista, 'entregables:indicadores', tareaIndicadoresEntregables(vista, conPlan), salida, 4000);
     sumar(r.costoUsd, r.demo);
     const porCausa = new Map<string, number>();

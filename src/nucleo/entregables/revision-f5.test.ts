@@ -99,6 +99,11 @@ describe('revisión F5', () => {
 
     const ok = aplicarAcciones(vista, [{ causa: 'C1', texto: 'Reducir el plazo pactado', cuadrante: 'reducir', esfuerzo: 'bajo', punteros: ['E2-A01'] }]);
     expect(ok.acciones).toHaveLength(1);
+
+    // Con un puntero pertinente y otro ajeno, el ajeno se quita y la acción se conserva.
+    const mixta = aplicarAcciones(vista, [{ causa: 'C1', texto: 'Reducir el plazo pactado', cuadrante: 'reducir', esfuerzo: 'bajo', punteros: ['E2-A01', 'E2-A02'] }]);
+    expect(mixta.acciones.map((a) => a.punteros)).toEqual([['E2-A01']]);
+    expect(mixta.rechazos).toContainEqual(expect.objectContaining({ motivo: 'puntero_no_pertinente' }));
   });
 
   it('10 y 9. el informe del núcleo no lleva metadatos vacíos y neutraliza saltos y HTML', () => {

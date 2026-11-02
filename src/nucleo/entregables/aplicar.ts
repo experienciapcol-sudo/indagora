@@ -31,14 +31,16 @@ class RevisorEntregables {
       this.rechazar(elemento, 'puntero_inexistente', `${elemento}: ${invalidos.join(', ')} no es una afirmación del caso`);
       return null;
     }
-    if (permitidos) {
-      const ajenos = [...new Set(punteros.filter((id) => !permitidos.has(id)))];
-      if (ajenos.length) {
-        this.rechazar(elemento, 'puntero_no_pertinente', `${elemento}: ${ajenos.join(', ')} existe(n) pero no forma(n) parte de la evidencia de la causa`);
-        return null;
-      }
+    // Los punteros ajenos a la evidencia de la causa se quitan; el elemento solo se descarta
+    // si no le queda ninguno pertinente.
+    const ajenos = permitidos ? [...new Set(punteros.filter((id) => !permitidos.has(id)))] : [];
+    const validos = [...new Set(punteros.filter((id) => !ajenos.includes(id)))];
+    if (ajenos.length) {
+      this.rechazar(elemento, 'puntero_no_pertinente', validos.length
+        ? `${elemento}: se quitaron ${ajenos.join(', ')}, que no forman parte de la evidencia de la causa`
+        : `${elemento}: ${ajenos.join(', ')} existe(n) pero no forma(n) parte de la evidencia de la causa`);
     }
-    return [...new Set(punteros)];
+    return validos.length ? validos : null;
   }
   causa(vista: VistaAgente, elemento: string, causaId: string) {
     const evaluada = vista.causas.find((c) => c.id === causaId);
