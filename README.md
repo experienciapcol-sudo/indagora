@@ -130,17 +130,40 @@ Reading sources themselves is done by `analizarFuente` (one call per source, in 
 
 ## Evaluation
 
-Phase F7 of the project defines the evaluation; its results are not yet published in this README.
+Seven fictional cases with a planted cause: the workshop demo case plus six evaluation cases (`src/nucleo/casos/evaluacion/`), written by a different model family than Muse so the test is independent. Each case ran three times in each of three arms: the full agent (A), a fixed flow with the same steps in a set order (B), and a single prompt (C). Run on 2 November 2026 against commit `e55974f`, 61 of 63 runs completed (two fixed-flow and single-prompt runs were cut by `max_tokens` and are excluded from n), total cost USD 7.64. The harness is `scripts/arnes/`.
 
-**TODO(results): paste the F7 results table here, with its n.**
+| Caso | Condición | n | Causa encontrada | Intervenciones prematuras/corrida | Citas inválidas atrapadas/corrida | Casillas sin oración/corrida | Fugas/corrida | USD |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| taller | A_agente | 3 | 1.00 | 0.00 | 0.00 | 0.00 | — | 0.6905 |
+| taller | B_flujo_fijo | 3 | 1.00 | 0.00 | 0.00 | 0.00 | — | 0.5721 |
+| taller | C_un_solo_prompt | 3 | 1.00 | 3.33 | 1.67 | 0.00 | — | 0.1022 |
+| clinica | A_agente | 3 | 1.00 | 0.00 | 0.00 | 0.00 | — | 0.5281 |
+| clinica | B_flujo_fijo | 3 | 1.00 | 0.00 | 0.00 | 0.00 | — | 0.4453 |
+| clinica | C_un_solo_prompt | 3 | 1.00 | 3.00 | 0.00 | 0.00 | — | 0.0793 |
+| despacho | A_agente | 3 | 0.33 | 0.00 | 0.00 | 0.00 | — | 0.9849 |
+| despacho | B_flujo_fijo | 2 | 0.50 | 0.50 | 0.00 | 0.00 | — | 0.2548 |
+| despacho | C_un_solo_prompt | 3 | 1.00 | 3.00 | 0.00 | 0.00 | — | 0.0721 |
+| hotel | A_agente | 3 | 0.00 | 0.00 | 0.00 | 0.00 | — | 0.7166 |
+| hotel | B_flujo_fijo | 3 | 0.00 | 1.00 | 0.00 | 0.00 | — | 0.3505 |
+| hotel | C_un_solo_prompt | 3 | 1.00 | 3.33 | 0.00 | 0.00 | — | 0.0771 |
+| imprenta | A_agente | 3 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.7259 |
+| imprenta | B_flujo_fijo | 3 | 0.00 | 1.00 | 0.00 | 0.00 | 0.00 | 0.3268 |
+| imprenta | C_un_solo_prompt | 3 | 1.00 | 3.00 | 0.00 | 0.00 | 0.00 | 0.0588 |
+| panaderia | A_agente | 3 | 1.00 | 0.00 | 0.00 | 0.00 | — | 0.3937 |
+| panaderia | B_flujo_fijo | 3 | 1.00 | 0.00 | 0.00 | 0.00 | — | 0.3706 |
+| panaderia | C_un_solo_prompt | 3 | 1.00 | 2.00 | 0.00 | 0.00 | — | 0.0637 |
+| soporte | A_agente | 3 | 1.00 | 0.00 | 0.00 | 0.00 | — | 0.4217 |
+| soporte | B_flujo_fijo | 3 | 1.00 | 0.00 | 0.00 | 0.00 | — | 0.3552 |
+| soporte | C_un_solo_prompt | 2 | 1.00 | 2.50 | 0.50 | 0.00 | — | 0.0491 |
 
-The planned design, so the table can be read in context when it lands:
+How to read it:
 
-- Six handwritten cases with a planted cause, written by a different model family than Muse so the test is independent.
-- Three arms compared on the same cases: the full agent, a fixed flow, and a single prompt.
-- Metrics: planted cause found; premature interventions (interventions proposed below N3); invalid citations caught by the code; cells filled without a supporting sentence; leaks from simulated people (in laboratory mode).
-
-Until that table exists, no accuracy, cost, or quality number for Indagora should be quoted from this README beyond the single development run mentioned above.
+- **Causa encontrada** (planted cause found) means different things per arm. For A and B it counts only when the stopping criterion names the planted cause as the principal one, which requires it to reach N3. For C it counts whenever the single answer names it, with no evidence bar.
+- **hotel** has a single source, so by design nothing can pass N2 and no principal cause can be named: 0.00 for A is the expected result, not a miss. The single prompt names the cause, but with 3.33 premature interventions per run.
+- **imprenta** is a Laboratorio case (simulated interviews). The agent ended in a partial delivery without confirming the cause in all three runs; it leaked no hidden fact.
+- **despacho** is the chronic (Weisbord) case and the weakest for the agent: 1 of 3 runs.
+- **Intervenciones prematuras** (interventions proposed for a cause below N3): 0 in every agent run across the seven cases; 2.0 to 3.3 per run for the single prompt; the fixed flow proposed some in three cases.
+- n is three per cell. These numbers describe this case set, not a general accuracy rate.
 
 ## Demo and DEMO_MODE
 
