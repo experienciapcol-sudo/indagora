@@ -14,7 +14,7 @@ import { ErrorMeta } from '../meta/cliente';
 import { CasoInvalido, generarCaso } from '../laboratorio/generarCaso';
 import { ejecutarSimulacion, SUBTOPE_LAB_USD } from '../laboratorio/simular';
 import { ErrorTranscripcion, transcribirAudio } from '../laboratorio/transcribir';
-import { asignarAgenteSiVacio, crearLab, gastoLabSesion, guardarLab, leerGrabado, leerLab, reclamarEntrevistaLab, type FilaLab } from '../laboratorio/almacenLab';
+import { asignarAgenteSiVacio, crearLab, gastoLabSesion, guardarLab, leerGrabado, leerLab, limpiarAgenteSiEs, reclamarEntrevistaLab, type FilaLab } from '../laboratorio/almacenLab';
 import { ipDe, type Ambiente } from './sesion';
 
 const LIMITE_CASOS = { llamadas: 10, periodoS: 60 };
@@ -163,8 +163,9 @@ rutasLaboratorio.post('/laboratorio/:id/iniciar-agente', async (c) => {
   try {
     await crearAgente(c.env.DB, sesion, e);
   } catch (err) {
-    fila.agenteId = null;
-    await guardarLab(c.env.DB, fila).catch(() => undefined);
+    // UPDATE puntual: solo se limpia si el hueco sigue siendo el id recién
+    // reclamado; guardarLab con la fila leída antes pisaría cambios ajenos.
+    await limpiarAgenteSiEs(c.env.DB, id, sesion, nuevoId).catch(() => undefined);
     throw err;
   }
   fila.agenteId = e.id;
@@ -175,6 +176,8 @@ rutasLaboratorio.post('/laboratorio/:id/revelar', async (c) => {
   const id = c.req.param('id');
   const sesion = c.get('sesion');
   const cuerpo = z.object({ forzar: z.boolean().optional() }).safeParse(await c.req.json().catch(() => ({})));
+  // Un cuerpo inválido (p. ej. { "forzar": 1 }) equivale a forzar ausente: nunca revela.
+  const forzar = cuerpo.success && cuerpo.data.forzar === true;
   const fila = ID.test(id) ? await leerLab(c.env.DB, id, sesion) : null;
   if (!fila || !fila.verdad) return c.json({ error: 'No existe ese laboratorio en esta sesión.' }, 404);
   let causaPrincipal: string | null = null;
@@ -182,13 +185,16 @@ rutasLaboratorio.post('/laboratorio/:id/revelar', async (c) => {
   if (fila.agenteId) {
     const agente = await leerAgente(c.env.DB, fila.agenteId, sesion);
     if (!agente) return c.json({ error: 'No existe el agente de este laboratorio en esta sesión.' }, 404);
-    if (!agente.estado.terminado && !cuerpo.success || (!agente.estado.terminado && cuerpo.success && !cuerpo.data.forzar)) {
+    if (!agente.estado.terminado && !forzar) {
       return c.json({ error: 'El agente todavía no termina; pide revelar con { "forzar": true } si quieres ver la causa ya.' }, 409);
     }
     const vista = vistaDe(agente.estado, await resumen(c.env.DB, sesion));
     causaPrincipal = causaPrincipalDelAgente(agente.estado, vista);
     textosEvidencia = agente.estado.afirmaciones.map((a) => `${a.cita} ${a.resumen}`);
-  } else if (cuerpo.success && !cuerpo.data.forzar && fila.estado !== 'listo' && fila.estado !== 'revelado') {
+  } else if (fila.estado === 'entrevistando') {
+    // Aunque venga forzar: la entrevista en curso va a guardar esta fila.
+    return c.json({ error: 'El laboratorio se está entrevistando; espera a que termine para revelar.' }, 409);
+  } else if (!forzar && fila.estado !== 'listo' && fila.estado !== 'revelado') {
     return c.json({ error: 'Todavía no hay diagnóstico; pide revelar con { "forzar": true } si quieres ver la causa ya.' }, 409);
   }
   const comparacion = comparar(fila.verdad, causaPrincipal, textosEvidencia);

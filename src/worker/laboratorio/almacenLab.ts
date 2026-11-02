@@ -16,6 +16,9 @@ export interface FilaLab {
   gastoLabUsd: number;
 }
 
+// Solo para pruebas con D1 falsa sin migraciones: en producción las tablas
+// las crea la migración 0007 con las mismas columnas, así que el almacén no
+// ejecuta CREATE TABLE antes de cada lectura o escritura.
 export async function asegurarTablasLab(db: D1Database): Promise<void> {
   await db.prepare(`CREATE TABLE IF NOT EXISTS laboratorios (id TEXT PRIMARY KEY, sesion TEXT NOT NULL, agente_id TEXT, estado TEXT NOT NULL, modo TEXT NOT NULL, publico TEXT NOT NULL, verdad TEXT, fuentes TEXT, intercambios TEXT NOT NULL DEFAULT '[]', gasto_lab_usd REAL NOT NULL DEFAULT 0, creado_en TEXT NOT NULL)`).run();
   await db.prepare(`CREATE TABLE IF NOT EXISTS laboratorios_grabados (id TEXT PRIMARY KEY, contenido TEXT NOT NULL, creado_en TEXT NOT NULL)`).run();
@@ -39,19 +42,16 @@ export async function crearLab(db: D1Database, fila: FilaLab): Promise<void> {
 }
 
 export async function leerLab(db: D1Database, id: string, sesion: string): Promise<FilaLab | null> {
-  await asegurarTablasLab(db);
   const f = await db.prepare('SELECT * FROM laboratorios WHERE id = ?1 AND sesion = ?2').bind(id, sesion).first<FilaCruda>();
   return f ? deFila(f) : null;
 }
 
 export async function guardarLab(db: D1Database, fila: FilaLab): Promise<void> {
-  await asegurarTablasLab(db);
   await db.prepare('UPDATE laboratorios SET agente_id = ?3, estado = ?4, modo = ?5, publico = ?6, verdad = ?7, fuentes = ?8, intercambios = ?9, gasto_lab_usd = ?10 WHERE id = ?1 AND sesion = ?2')
     .bind(fila.id, fila.sesion, fila.agenteId, fila.estado, fila.modo, JSON.stringify(fila.caso), fila.verdad ? JSON.stringify(fila.verdad) : null, fila.fuentes ? JSON.stringify(fila.fuentes) : null, JSON.stringify(fila.intercambios), fila.gastoLabUsd).run();
 }
 
 export async function leerGrabado(db: D1Database): Promise<unknown | null> {
-  await asegurarTablasLab(db);
   // La grabación vigente es la más reciente, nunca una fila arbitraria.
   const f = await db.prepare('SELECT contenido FROM laboratorios_grabados ORDER BY creado_en DESC, id DESC LIMIT 1').first<{ contenido: string }>();
   if (!f) return null;
@@ -66,15 +66,20 @@ export async function gastoLabSesion(db: D1Database, sesion: string): Promise<nu
 
 // Transición atómica generado -> entrevistando. La segunda petición en paralelo pierde.
 export async function reclamarEntrevistaLab(db: D1Database, id: string, sesion: string): Promise<boolean> {
-  await asegurarTablasLab(db);
   const r = await db.prepare(`UPDATE laboratorios SET estado = 'entrevistando' WHERE id = ?1 AND sesion = ?2 AND estado = 'generado'`).bind(id, sesion).run();
   return (r as { meta?: { changes?: number } }).meta?.changes === 1;
 }
 
 // Reclama el hueco de agente antes de crearlo: así no quedan agentes huérfanos.
 export async function asignarAgenteSiVacio(db: D1Database, id: string, sesion: string, agenteId: string): Promise<boolean> {
-  await asegurarTablasLab(db);
   const r = await db.prepare('UPDATE laboratorios SET agente_id = ?3 WHERE id = ?1 AND sesion = ?2 AND agente_id IS NULL').bind(id, sesion, agenteId).run();
+  return (r as { meta?: { changes?: number } }).meta?.changes === 1;
+}
+
+// Deshace solo la asignación hecha por esta petición si crear el agente falló:
+// no pisa un agente que otra petición haya podido asignar entretanto.
+export async function limpiarAgenteSiEs(db: D1Database, id: string, sesion: string, agenteId: string): Promise<boolean> {
+  const r = await db.prepare('UPDATE laboratorios SET agente_id = NULL WHERE id = ?1 AND sesion = ?2 AND agente_id = ?3').bind(id, sesion, agenteId).run();
   return (r as { meta?: { changes?: number } }).meta?.changes === 1;
 }
 

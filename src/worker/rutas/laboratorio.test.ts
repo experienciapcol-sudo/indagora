@@ -5,7 +5,7 @@ import type { Bindings } from '../env';
 import { d1Falsa } from '../gasto/d1-falsa';
 import { MODELOS_POR_OMISION } from '../../config/models';
 import { ejecutarSimulacion } from '../laboratorio/simular';
-import { asegurarTablasLab, gastoLabSesion, leerGrabado } from '../laboratorio/almacenLab';
+import { asegurarTablasLab, asignarAgenteSiVacio, crearLab, gastoLabSesion, leerGrabado, leerLab, limpiarAgenteSiEs, reclamarEntrevistaLab, type FilaLab } from '../laboratorio/almacenLab';
 import { CASOS_PREPARADOS } from '../../nucleo/laboratorio/casos';
 import { validarCaso } from '../../nucleo/laboratorio/validar';
 import type { CasoCrudo, ParametrosLaboratorio } from '../../nucleo/laboratorio/tipos';
@@ -58,6 +58,8 @@ afterEach(() => vi.unstubAllGlobals());
 
 const post = (ruta: string, e: Bindings, cookie = '', cuerpo?: unknown) => app.request(ruta, { method: 'POST', headers: { 'content-type': 'application/json', cookie, 'cf-connecting-ip': '203.0.113.20' }, body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo) }, e);
 async function crear(e: Bindings, cuerpo: unknown = PARAMS) {
+  // La D1 falsa no aplica la migración 0007: las tablas se aseguran aquí, en la prueba.
+  await asegurarTablasLab(e.DB);
   const r = await post('/api/laboratorio', e, '', cuerpo);
   return { r, cookie: r.headers.get('set-cookie')!.split(';')[0], json: await r.json() as any };
 }
@@ -241,6 +243,57 @@ describe('correcciones de la revisión de F6', () => {
     expect(f.mock.calls.length).toBe(0);
   });
 });
+
+describe('correcciones de rutas del Laboratorio', () => {
+  it('revelar con un cuerpo inválido {"forzar": 1} no revela un laboratorio recién generado', async () => {
+    metaSimulada();
+    const e = env();
+    const { cookie, json } = await crear(e, { preparado: 'lab-tienda-linea' });
+    expect(json.estado).toBe('generado');
+    const r = await post(`/api/laboratorio/${json.id}/revelar`, e, cookie, { forzar: 1 });
+    expect(r.status).toBe(409);
+    const texto = JSON.stringify(await r.json());
+    expect(texto).not.toContain('causaOculta');
+    expect(texto).not.toContain('Costura Loma');
+    const get = await app.request(`/api/laboratorio/${json.id}`, { headers: { cookie } }, e);
+    expect((await get.json() as any).estado).toBe('generado');
+  });
+
+  it('revelar sin agente en estado entrevistando responde 409 aunque venga forzar', async () => {
+    metaSimulada();
+    const e = env();
+    const { cookie, json } = await crear(e, { preparado: 'lab-tienda-linea' });
+    const sesion = (await leerLab(e.DB, json.id, (await leerSesionDe(e, cookie)) ?? ''))?.sesion;
+    expect(sesion).toBeTruthy();
+    expect(await reclamarEntrevistaLab(e.DB, json.id, sesion!)).toBe(true);
+    const r = await post(`/api/laboratorio/${json.id}/revelar`, e, cookie, { forzar: true });
+    expect(r.status).toBe(409);
+    expect(JSON.stringify(await r.json())).not.toContain('Costura Loma');
+  });
+
+  it('limpiarAgenteSiEs solo limpia si el hueco sigue siendo el id reclamado', async () => {
+    const e = env();
+    await asegurarTablasLab(e.DB);
+    const fila: FilaLab = { id: '11111111-1111-4111-8111-111111111111', sesion: 's-limpieza', agenteId: null, estado: 'listo', modo: 'en_vivo', caso: CASOS_PREPARADOS[0].caso, verdad: CASOS_PREPARADOS[0].verdad, fuentes: CASOS_PREPARADOS[0].fuentes, intercambios: [], gastoLabUsd: 0 };
+    await crearLab(e.DB, fila);
+    expect(await asignarAgenteSiVacio(e.DB, fila.id, fila.sesion, 'agente-nuevo')).toBe(true);
+    expect(await limpiarAgenteSiEs(e.DB, fila.id, fila.sesion, 'agente-ajeno')).toBe(false);
+    expect((await leerLab(e.DB, fila.id, fila.sesion))?.agenteId).toBe('agente-nuevo');
+    // Otro cambio concurrente no debe pisarse: solo se limpia el id propio.
+    expect(await limpiarAgenteSiEs(e.DB, fila.id, fila.sesion, 'agente-nuevo')).toBe(true);
+    expect((await leerLab(e.DB, fila.id, fila.sesion))?.agenteId).toBeNull();
+  });
+});
+
+// La sesión real viaja en la cookie firmada; para tocar D1 en la prueba se
+// recupera leyendo la fila recién creada por su id con cualquier sesión no:
+// en su lugar se busca la sesión recorriendo la fila vía la propia ruta no
+// es posible, así que se extrae de la cookie no firmada no aplica; se usa el
+// reclamo con la sesión obtenida del almacén mediante una lectura directa.
+async function leerSesionDe(e: Bindings, _cookie: string): Promise<string | null> {
+  const f = await e.DB.prepare('SELECT sesion FROM laboratorios LIMIT 1').first<{ sesion: string }>().catch(() => null);
+  return f?.sesion ?? null;
+}
 
 describe('voz', () => {
   it('transcribe un WAV válido, mapea hablantes y cobra duración × 0,18/h', async () => {
