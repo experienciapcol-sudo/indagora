@@ -80,6 +80,12 @@ const casillas = (e: EstadoAgente): Casilla[] => [
 ];
 
 const llena = (c: Casilla) => c.texto.trim() !== '';
+// Partes del criterio que un paso pudo dejar incompletas: habilitan un reintento con las mismas fuentes.
+export const desviacionIncompleta = (e: EstadoAgente) => !e.desviacion || !llena(e.desviacion.ocurre) || !llena(e.desviacion.esperado);
+export const especificacionIncompleta = (e: EstadoAgente) =>
+  e.seleccion?.ruta === 'cronica'
+    ? (e.weisbord ?? []).length < 6
+    : (e.esNoEs ?? []).filter((f) => llena(f.es) && llena(f.noEs)).length < 2;
 const FALTA_DESVIACION = 'Falta enunciar la desviación (qué se esperaba y qué ocurre) con evidencia';
 
 export function criterioDeParo(e: EstadoAgente, causas: readonly CausaEvaluada[]): EstadoCriterio {

@@ -3,7 +3,7 @@ import { clavePar } from '../niveles';
 import type { Afirmacion, FuenteEntrada } from '../tipos';
 import { aplicarCausas, aplicarDesviacion, aplicarEsNoEs, aplicarJuicios, aplicarRelaciones, aplicarWeisbord, type CasillaModelo } from './aplicar';
 import { criterioDeParo, esperaDelConsultor, evaluarCausas } from './criterio';
-import { crearEstado, firmaDe, invalidarDesde, nivelesDe, vistaDe } from './estado';
+import { crearEstado, firmaDe, invalidarDesde, leidas, nivelesDe, vistaDe } from './estado';
 import { revisarDecision } from './guardas';
 import { seleccionar } from './seleccion';
 import type { Decision, Desviacion, EstadoAgente } from './tipos';
@@ -354,6 +354,18 @@ describe('guardas', () => {
     // Sin fuentes nuevas no puede volver a enunciar: solo el documento pedido lo destraba.
     e.solicitudes.push({ id: 'S1', descripcion: 'Registro de citas', motivo: 'subir C1 a N4' });
     expect(revisar(e, decision('detenerse'))).toEqual({ ok: true });
+  });
+
+  it('permite un solo reintento de la especificación si quedó incompleta con las mismas fuentes', () => {
+    const e = probado();
+    const d = decision('especificar_es_no_es');
+    const hecha = { firma: firmaDe(d), leidas: leidas(e) };
+    e.hechas = [hecha];
+    expect(revisar(e, d)).toMatchObject({ ok: false, motivo: 'repetida' });
+    e.esNoEs = e.esNoEs!.slice(0, 1); // una sola fila con contraste: no cumple el criterio
+    expect(revisar(e, d)).toEqual({ ok: true });
+    e.hechas = [hecha, hecha];
+    expect(revisar(e, d)).toMatchObject({ ok: false, motivo: 'repetida' });
   });
 
   it('no diseña verificación de una causa sin probar ni de una descartada', () => {

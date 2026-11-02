@@ -1,7 +1,7 @@
 // Guardas: el código revisa cada movimiento que propone el modelo antes de ejecutarlo.
 // Fase previa cumplida, herramienta elegida por la regla, nivel suficiente para la acción,
 // sin repetir y dentro del presupuesto. Una causa con N0 a N2 solo admite verificación.
-import { criterioDeParo, esperaDelConsultor, filasDePrueba } from './criterio';
+import { criterioDeParo, desviacionIncompleta, especificacionIncompleta, esperaDelConsultor, filasDePrueba } from './criterio';
 import { firmaDe, leidas, nivelesDe } from './estado';
 import { elegida } from './seleccion';
 import type { CausaEvaluada, Decision, EstadoAgente, MotivoGuarda } from './tipos';
@@ -16,6 +16,9 @@ export function revisarDecision(e: EstadoAgente, d: Decision, causas: readonly C
   const firma = firmaDe(d);
   const previa = e.hechas.filter((h) => h.firma === firma).at(-1);
   const repetida = !!previa && previa.leidas === leidas(e);
+  // Si el resultado anterior dejó incompleta su parte del criterio, se permite un reintento
+  // con las mismas fuentes; sin esto el agente quedaba sin ninguna acción admisible.
+  const reintento = e.hechas.filter((h) => h.firma === firma && h.leidas === leidas(e)).length < 2;
   const causa = d.causa ? causas.find((c) => c.id === d.causa) : undefined;
 
   switch (d.accion) {
@@ -29,14 +32,14 @@ export function revisarDecision(e: EstadoAgente, d: Decision, causas: readonly C
     }
     case 'enunciar_desviacion':
       if (leidas(e) === 0) return no('fase_previa', 'Antes de enunciar la desviación hay que leer al menos una fuente');
-      return repetida ? no('repetida', 'La desviación ya está enunciada y no hay fuentes nuevas desde entonces') : SI;
+      return repetida && !(reintento && desviacionIncompleta(e)) ? no('repetida', 'La desviación ya está enunciada y no hay fuentes nuevas desde entonces') : SI;
     case 'especificar_es_no_es':
     case 'barrer_weisbord': {
       if (!e.desviacion) return no('fase_previa', 'Primero se enuncia la desviación: de ella sale la regla de selección');
       const h = d.accion === 'especificar_es_no_es' ? 'es_no_es' : 'weisbord';
       const r = e.seleccion?.herramientas.find((x) => x.herramienta === h);
       if (!elegida(e.seleccion, h)) return no('herramienta_no_elegida', `La regla de selección no eligió esta herramienta: ${r?.razon ?? 'sin regla'}`);
-      return repetida ? no('repetida', 'Ya se aplicó y no hay fuentes nuevas desde entonces') : SI;
+      return repetida && !(reintento && especificacionIncompleta(e)) ? no('repetida', 'Ya se aplicó y no hay fuentes nuevas desde entonces') : SI;
     }
     case 'generar_causas': {
       const cronica = e.seleccion?.ruta === 'cronica';
