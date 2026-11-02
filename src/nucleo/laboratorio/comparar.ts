@@ -7,6 +7,22 @@ function palabrasClave(texto: string): string[] {
   return [...new Set(normalizarTexto(texto).split(/[^a-z0-9]+/).filter((w) => w.length >= 5 && !stop.has(w)))];
 }
 
+// Selector tipado de la causa principal: único lugar que lee criterio.principal.
+export interface VistaConCriterio { criterio?: { principal?: unknown } | null }
+
+export function idCausaPrincipal(vista: VistaConCriterio): string | null {
+  const p = vista?.criterio?.principal;
+  return typeof p === 'string' && p ? p : null;
+}
+
+export function causaPrincipalDelAgente(
+  estado: { causas: readonly { id: string; enunciado: string }[] },
+  vista: VistaConCriterio,
+): string | null {
+  const id = idCausaPrincipal(vista);
+  return id ? estado.causas.find((x) => x.id === id)?.enunciado ?? null : null;
+}
+
 export function comparar(
   v: VerdadLaboratorio,
   causaPrincipalAgente: string | null,

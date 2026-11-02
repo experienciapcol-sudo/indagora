@@ -26,6 +26,11 @@ export interface Hecho {
 
 export interface PersonaSimulada { id: string; rol: string; presentacion: string }
 export interface DocumentoSimulado { id: string; titulo: string; esClave: boolean; disponible: boolean }
+// Lo único de un documento que puede salir al navegador antes de revelar.
+export type DocumentoSimuladoPublico = Pick<DocumentoSimulado, 'id' | 'titulo' | 'disponible'>;
+export interface CasoLaboratorioPublico extends Omit<CasoLaboratorio, 'documentos'> {
+  documentos: DocumentoSimuladoPublico[];
+}
 export interface Distractor { id: string; enunciado: string; porQueEngana: string }
 
 export interface VerdadLaboratorio {

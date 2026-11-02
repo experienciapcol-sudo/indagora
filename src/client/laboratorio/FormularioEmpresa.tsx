@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { CASOS_PREPARADOS } from '../../nucleo/laboratorio/casos';
+import { CASOS_PREPARADOS_PUBLICOS as CASOS_PREPARADOS } from '../../nucleo/laboratorio/casosPublicos';
 import type { ParametrosLaboratorio } from '../../nucleo/laboratorio/tipos';
 import { TEXTOS_LAB } from './textos';
 

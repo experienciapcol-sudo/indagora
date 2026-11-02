@@ -59,7 +59,7 @@ export async function ejecutarSimulacion(deps: Dependencias, sesion: string, cas
         clave: `lab:simular:${caso.id}:${persona.id}:${ronda.tipo}:${n}:${intento}`,
       });
       gastoLabUsd += r.costoUsd;
-      const revision = revisarRespuesta(r.datos.respuesta, autorizados, verdad.hechos);
+      const revision = revisarRespuesta(r.datos.respuesta, autorizados, verdad.hechos, verdad.causa.marcadores);
       if (revision.ok) respuesta = r.datos.respuesta;
       else if (intento === 1) fuga = true;
     }

@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FuenteEntrada } from '../../nucleo/tipos';
-import { planDeRondas } from '../../nucleo/laboratorio/entrevistas';
 import type { ParametrosLaboratorio } from '../../nucleo/laboratorio/tipos';
 import { obtenerAgente } from '../agente/api';
 import { PanelAgente } from '../agente/PanelAgente';
@@ -33,6 +32,11 @@ export function PanelLaboratorio({ siguienteIdFuente, onFuenteReal }: Props) {
   const ocupadoAlgo = ocupado !== '';
   const caso = vista?.caso ?? null;
   const enGrabado = vista?.modo === 'grabado';
+
+  // Al recargar, el laboratorio recuperado ya trae su agente: sin esto, revelar quedaba bloqueado.
+  useEffect(() => {
+    if (vista?.agenteId) setAgenteId(vista.agenteId);
+  }, [vista?.agenteId]);
 
   async function ejecutar(nombre: string, accion: () => Promise<void>) {
     setOcupado(nombre);
@@ -89,7 +93,13 @@ export function PanelLaboratorio({ siguienteIdFuente, onFuenteReal }: Props) {
     });
   };
 
-  const noEntrevistoATodas = caso ? planDeRondas(caso).length < caso.personas.length : false;
+  // Personas que en los intercambios reales solo recibieron la pregunta abierta.
+  const noEntrevistoATodas = caso
+    ? caso.personas.some((p) => {
+        const suyos = (vista?.intercambios ?? []).filter((x) => x.persona === p.id);
+        return suyos.length > 0 && suyos.every((x) => x.tipoPregunta === 'abierta');
+      })
+    : false;
 
   return (
     <section className="laboratorio" aria-labelledby="t-laboratorio">

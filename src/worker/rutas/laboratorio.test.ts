@@ -5,6 +5,7 @@ import type { Bindings } from '../env';
 import { d1Falsa } from '../gasto/d1-falsa';
 import { MODELOS_POR_OMISION } from '../../config/models';
 import { ejecutarSimulacion } from '../laboratorio/simular';
+import { asegurarTablasLab, gastoLabSesion, leerGrabado } from '../laboratorio/almacenLab';
 import { CASOS_PREPARADOS } from '../../nucleo/laboratorio/casos';
 import { validarCaso } from '../../nucleo/laboratorio/validar';
 import type { CasoCrudo, ParametrosLaboratorio } from '../../nucleo/laboratorio/tipos';
@@ -166,6 +167,77 @@ describe('laboratorio', () => {
     expect(r.status).toBe(200);
     expect(json.modo).toBe('grabado');
     expect(json.aviso).toContain('corrida grabada');
+    expect(f.mock.calls.length).toBe(0);
+  });
+});
+
+describe('correcciones de la revisión de F6', () => {
+  it('ninguna ruta pública filtra la causa: preparado sin esClave, marcadores ni verdad', async () => {
+    metaSimulada();
+    const e = env();
+    const { r, cookie, json } = await crear(e, { preparado: 'lab-clinica-dental' });
+    expect(r.status).toBe(200);
+    const texto = JSON.stringify(json);
+    expect(texto).not.toContain('esClave');
+    expect(texto).not.toContain('Avisamed');
+    expect(texto).not.toContain('teléfono viejo');
+    const get = await app.request(`/api/laboratorio/${json.id}`, { headers: { cookie } }, e);
+    expect(JSON.stringify(await get.json())).not.toContain('esClave');
+  });
+
+  it('la corrida grabada de respaldo no trae la causa de referencia ni esClave', async () => {
+    metaSimulada();
+    const e = env({ TOPE_SESION_USD: '0', TOPE_GLOBAL_USD: '0' });
+    const { json } = await crear(e);
+    const texto = JSON.stringify(json);
+    expect(json.modo).toBe('grabado');
+    expect(texto).not.toContain('Avisamed');
+    expect(texto).not.toContain('esClave');
+  });
+
+  it('una segunda entrevista sobre el mismo laboratorio recibe 409 y no sobrescribe', async () => {
+    metaSimulada();
+    const e = env();
+    const { cookie, json } = await crear(e, { preparado: 'lab-tienda-linea' });
+    const primera = await post(`/api/laboratorio/${json.id}/entrevistar`, e, cookie);
+    expect(primera.status).toBe(200);
+    const segunda = await post(`/api/laboratorio/${json.id}/entrevistar`, e, cookie);
+    expect(segunda.status).toBe(409);
+  });
+
+  it('iniciar-agente dos veces devuelve el mismo agente', async () => {
+    metaSimulada();
+    const e = env();
+    const { cookie, json } = await crear(e, { preparado: 'lab-tienda-linea' });
+    await post(`/api/laboratorio/${json.id}/entrevistar`, e, cookie);
+    const a = await (await post(`/api/laboratorio/${json.id}/iniciar-agente`, e, cookie)).json() as any;
+    const b = await (await post(`/api/laboratorio/${json.id}/iniciar-agente`, e, cookie)).json() as any;
+    expect(a.agenteId).toBeTruthy();
+    expect(b.agenteId).toBe(a.agenteId);
+  });
+
+  it('si el gasto no se puede comprobar, falla cerrada en vez de valer cero', async () => {
+    const dbRota = { prepare() { throw new Error('sin tabla'); } } as unknown as D1Database;
+    await expect(gastoLabSesion(dbRota, 's1')).rejects.toThrow('sin tabla');
+  });
+
+  it('leerGrabado devuelve la grabación más reciente', async () => {
+    const e = env();
+    await asegurarTablasLab(e.DB);
+    await e.DB.prepare('INSERT INTO laboratorios_grabados (id, contenido, creado_en) VALUES (?1, ?2, ?3)').bind('g1', JSON.stringify({ marca: 'vieja' }), '2026-01-01T00:00:00Z').run();
+    await e.DB.prepare('INSERT INTO laboratorios_grabados (id, contenido, creado_en) VALUES (?1, ?2, ?3)').bind('g2', JSON.stringify({ marca: 'nueva' }), '2026-02-01T00:00:00Z').run();
+    expect(await leerGrabado(e.DB)).toEqual({ marca: 'nueva' });
+  });
+
+  it('un Content-Length enorme se rechaza con 413 sin leer el cuerpo ni llamar al ASR', async () => {
+    const { f } = metaSimulada();
+    const e = env();
+    const r = await app.request('/api/voz/transcribir', {
+      method: 'POST',
+      headers: { 'content-type': 'multipart/form-data; boundary=x', 'content-length': String(40 * 1024 * 1024), 'cf-connecting-ip': '203.0.113.30' },
+      body: '--x--',
+    }, e);
+    expect(r.status).toBe(413);
     expect(f.mock.calls.length).toBe(0);
   });
 });

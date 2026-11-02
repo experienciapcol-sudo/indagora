@@ -8,3 +8,4 @@ export * from './comparar';
 export * from './hablantes';
 export * from './voz';
 export * from './casos';
+export * from './casosPublicos';

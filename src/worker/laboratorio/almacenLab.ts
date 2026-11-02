@@ -52,15 +52,29 @@ export async function guardarLab(db: D1Database, fila: FilaLab): Promise<void> {
 
 export async function leerGrabado(db: D1Database): Promise<unknown | null> {
   await asegurarTablasLab(db);
-  const f = await db.prepare('SELECT contenido FROM laboratorios_grabados LIMIT 1').first<{ contenido: string }>();
+  // La grabación vigente es la más reciente, nunca una fila arbitraria.
+  const f = await db.prepare('SELECT contenido FROM laboratorios_grabados ORDER BY creado_en DESC, id DESC LIMIT 1').first<{ contenido: string }>();
   if (!f) return null;
   try { return JSON.parse(f.contenido); } catch { return null; }
 }
 
+// Falla cerrada: si no se puede comprobar el gasto, no se interpreta como cero.
 export async function gastoLabSesion(db: D1Database, sesion: string): Promise<number> {
-  try {
-    const f = await db.prepare(`SELECT COALESCE(SUM(costo_usd), 0) AS usd FROM llamadas WHERE sesion = ?1 AND proposito LIKE 'lab:%'`).bind(sesion).first<{ usd: number }>();
-    return f?.usd ?? 0;
-  } catch { return 0; }
+  const f = await db.prepare(`SELECT COALESCE(SUM(costo_usd), 0) AS usd FROM llamadas WHERE sesion = ?1 AND proposito LIKE 'lab:%'`).bind(sesion).first<{ usd: number }>();
+  return f?.usd ?? 0;
+}
+
+// Transición atómica generado -> entrevistando. La segunda petición en paralelo pierde.
+export async function reclamarEntrevistaLab(db: D1Database, id: string, sesion: string): Promise<boolean> {
+  await asegurarTablasLab(db);
+  const r = await db.prepare(`UPDATE laboratorios SET estado = 'entrevistando' WHERE id = ?1 AND sesion = ?2 AND estado = 'generado'`).bind(id, sesion).run();
+  return (r as { meta?: { changes?: number } }).meta?.changes === 1;
+}
+
+// Reclama el hueco de agente antes de crearlo: así no quedan agentes huérfanos.
+export async function asignarAgenteSiVacio(db: D1Database, id: string, sesion: string, agenteId: string): Promise<boolean> {
+  await asegurarTablasLab(db);
+  const r = await db.prepare('UPDATE laboratorios SET agente_id = ?3 WHERE id = ?1 AND sesion = ?2 AND agente_id IS NULL').bind(id, sesion, agenteId).run();
+  return (r as { meta?: { changes?: number } }).meta?.changes === 1;
 }
 

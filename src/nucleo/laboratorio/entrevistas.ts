@@ -3,26 +3,39 @@ import type { FuenteEntrada } from '../tipos';
 import type { CasoLaboratorio, Intercambio, TipoPregunta, VerdadLaboratorio } from './tipos';
 import { preguntaPara } from './revelacion';
 
+// Tope de costo intencional: 12 intercambios por caso.
 export const MAX_INTERCAMBIOS = 12;
 
 export function planDeRondas(c: CasoLaboratorio): { persona: string; tipo: TipoPregunta }[] {
   const plan: { persona: string; tipo: TipoPregunta }[] = [];
+  // Por fases dentro del tope: primero TODAS las personas reciben una ronda
+  // profunda (incidente, donde suelen salir los hechos de causa) antes de
+  // profundizar en nadie; después cuantitativa, documentos y el resto.
+  // Nadie queda solo con la pregunta abierta; qué tipos faltan por persona
+  // lo expone coberturaRondas en vez de ocultarlo.
   for (const persona of c.personas) plan.push({ persona: persona.id, tipo: 'abierta' });
-  let primeraCuantitativa = true;
-  for (const persona of c.personas) {
-    for (const tipo of ['temporal', 'contraste', 'incidente', 'cuantitativa'] as TipoPregunta[]) {
-      plan.push({ persona: persona.id, tipo });
-      if (tipo === 'cuantitativa' && primeraCuantitativa) {
-        primeraCuantitativa = false;
-        for (const doc of c.documentos) plan.push({ persona: doc.id, tipo: 'documental' });
-      }
-    }
+  for (const persona of c.personas) plan.push({ persona: persona.id, tipo: 'incidente' });
+  for (const persona of c.personas) plan.push({ persona: persona.id, tipo: 'cuantitativa' });
+  for (const doc of c.documentos) plan.push({ persona: doc.id, tipo: 'documental' });
+  for (const tipo of ['temporal', 'contraste'] as TipoPregunta[]) {
+    for (const persona of c.personas) plan.push({ persona: persona.id, tipo });
   }
   return plan.slice(0, MAX_INTERCAMBIOS);
 }
 
+export interface CoberturaPersona { persona: string; tipos: TipoPregunta[]; soloAbierta: boolean }
+
+export function coberturaRondas(c: CasoLaboratorio): CoberturaPersona[] {
+  const plan = planDeRondas(c);
+  return c.personas.map((p) => {
+    const tipos = plan.filter((r) => r.persona === p.id).map((r) => r.tipo);
+    return { persona: p.id, tipos, soloAbierta: tipos.length > 0 && tipos.every((t) => t === 'abierta') };
+  });
+}
+
 export function intercambiosEntrevistados(c: CasoLaboratorio): boolean {
-  return planDeRondas(c).length >= c.personas.length;
+  // Entrevistada de verdad: cada persona recibió al menos una ronda profunda, no solo la abierta.
+  return coberturaRondas(c).every((x) => x.tipos.some((t) => t !== 'abierta'));
 }
 
 export function fuentesDeIntercambios(c: CasoLaboratorio, xs: Intercambio[], docs: FuenteEntrada[]): FuenteEntrada[] {

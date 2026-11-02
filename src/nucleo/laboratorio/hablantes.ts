@@ -40,18 +40,28 @@ export function aplicarAsignaciones(
     avisos.push('Quien entrevista no puede ser también la persona principal.');
   }
   const roles = new Map<string, string>();
+  let rolInvalido = false;
   for (const a of asignaciones) {
     if (!a.rol.trim()) avisos.push(`El hablante "${a.etiqueta}" no tiene rol.`);
+    // El rol se incrusta como "rol: texto" en cada turno: sin saltos, sin dos
+    // puntos ni controles y con largo acotado, para no inyectar turnos falsos.
+    if (/[\r\n:\u0000-\u001f\u007f]/.test(a.rol) || a.rol.trim().length > 40) {
+      rolInvalido = true;
+      avisos.push(`El rol de "${a.etiqueta}" no es válido: una sola línea, sin dos puntos y de hasta 40 caracteres.`);
+    }
     const clave = normalizarTexto(a.rol);
     if (clave && roles.has(clave)) avisos.push(`Dos hablantes comparten el rol "${a.rol}"; no se podría saber quién dijo qué.`);
     roles.set(clave, a.etiqueta);
   }
   const detectados = detectarHablantes(texto);
   const asignadas = new Set(asignaciones.map((a) => a.etiqueta));
-  for (const d of detectados) if (!asignadas.has(d.etiqueta)) avisos.push(`El hablante "${d.etiqueta}" no tiene asignación; sus líneas se tratarán como continuación.`);
+  const sinAsignar = detectados.filter((d) => !asignadas.has(d.etiqueta));
+  for (const d of sinAsignar) avisos.push(`El hablante "${d.etiqueta}" no tiene asignación.`);
   for (const a of asignaciones) if (!detectados.some((d) => d.etiqueta === a.etiqueta)) avisos.push(`La asignación "${a.etiqueta}" no aparece en el texto.`);
 
-  if (entrevistadores.length !== 1 || principales.length !== 1 || avisos.some((a) => a.startsWith('Dos hablantes') || a.includes('no tiene rol'))) {
+  // Un hablante detectado sin asignación bloquearía la atribución: sus líneas se
+  // pegarían al turno anterior. Sin asignación completa no se crea la fuente.
+  if (entrevistadores.length !== 1 || principales.length !== 1 || rolInvalido || sinAsignar.length > 0 || avisos.some((a) => a.startsWith('Dos hablantes') || a.includes('no tiene rol'))) {
     return { fuente: null, avisos };
   }
 
