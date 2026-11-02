@@ -50,7 +50,6 @@ export function PanelFuentes({ fuentes, caso, bloqueado, onAgregar, onQuitar, on
   return (
     <section className="panel" aria-labelledby="t-fuentes">
       <div className="panel__cabeza">
-        <span className="folio" aria-hidden="true">I</span>
         <h2 id="t-fuentes">{T.titulo}</h2>
         <button type="button" className="boton boton--secundario panel__accion" onClick={onCargarCaso} disabled={bloqueado}>
           {T.cargarCaso}

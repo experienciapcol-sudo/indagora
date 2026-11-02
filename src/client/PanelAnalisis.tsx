@@ -37,7 +37,6 @@ export function PanelAnalisis({ fuentes, estados, analizando, deteniendo, aviso,
   return (
     <section className="panel" aria-labelledby="t-analisis">
       <div className="panel__cabeza">
-        <span className="folio" aria-hidden="true">II</span>
         <h2 id="t-analisis">{T.titulo}</h2>
       </div>
       <p className="ayuda">{T.ayuda}</p>

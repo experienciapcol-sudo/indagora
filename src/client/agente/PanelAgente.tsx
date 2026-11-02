@@ -154,6 +154,8 @@ export function PanelAgente({ alGasto }: { alGasto?: (g: VistaAgente['gasto']) =
   const e = vista?.estado ?? null;
   const terminado = e?.terminado ?? null;
   const ocupado = iniciando || corriendo !== null;
+  // Terminado salvo en espera del consultor: ya no hay pasos que correr.
+  const finDefinitivo = terminado !== null && terminado.motivo !== 'espera';
 
   // Secciones del método en su orden (sin folios: el título basta, tarea 22).
   const secciones = e ? seccionesDelMetodo(e.seleccion, e.esNoEs, e.weisbord) : null;
@@ -185,7 +187,7 @@ export function PanelAgente({ alGasto }: { alGasto?: (g: VistaAgente['gasto']) =
           <button type="button" className={`boton${e ? ' boton--secundario' : ''}`} disabled={ocupado} onClick={() => void iniciar()}>
             {iniciando ? T.botones.iniciando : e ? T.botones.reiniciar : T.botones.iniciar}
           </button>
-          {e && (
+          {e && !finDefinitivo && (
             <>
               {corriendo === 'bucle' ? (
                 <button type="button" className="boton boton--peligro" disabled={deteniendo} onClick={detener}>

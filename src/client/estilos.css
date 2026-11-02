@@ -257,10 +257,13 @@ a { color: var(--acento-tinta); text-underline-offset: 3px; }
 @media (min-width: 52rem) {
   .encabezado { grid-template-columns: 1fr minmax(18rem, 24rem); align-items: end; }
   .encabezado__estado { justify-items: stretch; }
+  .encabezado__idiomas { justify-self: end; }
 }
 
 .encabezado__idiomas {
   display: inline-flex;
+  width: fit-content;
+  justify-self: start;
   border: 1px solid var(--borde-fuerte);
   border-radius: var(--r-2);
   overflow: hidden;
@@ -372,21 +375,6 @@ a { color: var(--acento-tinta); text-underline-offset: 3px; }
 }
 .panel__accion { margin-left: auto; }
 
-/* Número funcional arábigo (App aún pasa «III»; se retira al migrar el marcado). */
-.folio {
-  display: inline-grid;
-  place-items: center;
-  min-width: 2rem;
-  height: 2rem;
-  padding: 0 var(--e-2);
-  border: 1px solid var(--borde-fuerte);
-  border-radius: var(--r-1);
-  font-family: var(--mono);
-  font-size: var(--t-micro);
-  font-weight: 600;
-  color: var(--texto-2);
-  background: var(--superficie);
-}
 
 /* ---------- fuentes (§5.4) ---------- */
 

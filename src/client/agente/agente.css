@@ -113,12 +113,7 @@
   line-height: 1.3;
   color: var(--texto);
 }
-.sec-ag .folio {
-  min-width: 2rem;
-  height: auto;
-  padding: 2px var(--e-1);
-  font-size: var(--t-micro);
-}
+
 .sec-ag__aun {
   display: inline-flex;
   align-items: center;
@@ -129,11 +124,15 @@
   color: var(--texto-2);
 }
 .sec-ag__aun .icono { width: 1rem; height: 1rem; }
+@media (max-width: 600px) {
+  .sec-ag__cabeza { flex-wrap: wrap; }
+  .sec-ag__aun { flex-basis: 100%; margin-left: 0; white-space: nowrap; }
+}
 .sec-ag__cuerpo { margin-top: var(--e-3); }
 .sec-ag--vacia { border-style: dashed; background: transparent; }
 .sec-ag--vacia .sec-ag__cuerpo,
 .sec-ag--vacia > .ayuda { opacity: 0.65; }
-.sec-ag--vacia .folio { border-style: dashed; }
+
 
 .tarjeta-ag {
   padding: var(--e-4);
