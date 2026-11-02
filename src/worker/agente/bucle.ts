@@ -69,7 +69,7 @@ export async function darPaso(deps: Dependencias, sesion: string, e: EstadoAgent
       // La guarda solo lo aprueba con el criterio cumplido o si lo que falta depende del consultor.
       const espera = esperaDelConsultor(e, x.causas, x.niveles, x.criterio);
       if (x.criterio.cumplido) terminar(e, 'criterio', `Criterio de paro cumplido: ${x.criterio.principal} es la causa principal.`);
-      else terminar(e, 'espera', `Entrega parcial: ${x.criterio.faltantes.join('; ')}. Para seguir, el consultor puede: ${espera.join('; ')}.`);
+      else terminar(e, 'espera', `Entrega parcial: ${x.criterio.faltantes.join('; ')}. Para seguir, el consultor puede: ${espera.length ? espera.join('; ') : 'aportar entrevistas o documentos nuevos, porque con las fuentes actuales no queda ningún paso de análisis posible'}.`);
       return e.traza.slice(desde);
     }
 

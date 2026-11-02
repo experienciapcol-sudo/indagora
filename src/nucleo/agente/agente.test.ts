@@ -368,6 +368,17 @@ describe('guardas', () => {
     expect(revisar(e, d)).toMatchObject({ ok: false, motivo: 'repetida' });
   });
 
+  it('acepta detenerse como entrega parcial si ninguna acción de análisis es admisible', () => {
+    const e = probado();
+    e.causas[0].evidencia = ['E2-A02']; // C1 queda en N2, sin nada que confirmar ni documento pedido
+    expect(revisar(e, decision('detenerse'))).toMatchObject({ ok: false, motivo: 'criterio_no_cumplido' });
+    // Todo lo demás ya se hizo con estas fuentes y no tiene reintento: solo queda entregar.
+    const todas = (['enunciar_desviacion', 'especificar_es_no_es', 'barrer_weisbord', 'generar_causas', 'probar_causas'] as const).map((a) => decision(a));
+    for (const x of todas) e.hechas.push({ firma: firmaDe(x), leidas: leidas(e) }, { firma: firmaDe(x), leidas: leidas(e) });
+    for (const c of e.causas) e.verificaciones.push({ causa: c.id, queRevisar: 'x', conQuien: 'x', confirmaSi: 'x', descartaSi: 'x' });
+    expect(revisar(e, decision('detenerse'))).toEqual({ ok: true });
+  });
+
   it('no diseña verificación de una causa sin probar ni de una descartada', () => {
     const e = probado();
     expect(revisar(e, decision('disenar_verificacion', { causa: 'C2' }))).toMatchObject({ ok: false, motivo: 'parametro_invalido' });

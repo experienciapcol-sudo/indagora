@@ -74,8 +74,22 @@ export function revisarDecision(e: EstadoAgente, d: Decision, causas: readonly C
     case 'detenerse': {
       // Se acepta con el criterio cumplido, o como entrega parcial si solo falta lo que el consultor puede dar.
       const c = criterioDeParo(e, causas);
-      if (c.cumplido || esperaDelConsultor(e, causas, nivelesDe(e), c).length > 0) return SI;
+      // También cuando ninguna otra acción de análisis es admisible: seguir solo gastaría pasos.
+      if (c.cumplido || esperaDelConsultor(e, causas, nivelesDe(e), c).length > 0 || sinSalida(e, causas)) return SI;
       return no('criterio_no_cumplido', `Aún falta: ${c.faltantes.join('; ')}`);
     }
   }
+}
+
+// Ninguna acción de análisis pasa la guarda con las fuentes actuales. Pedir otro documento no
+// cuenta: solo el consultor puede aportarlo, y para eso está la entrega parcial.
+export function sinSalida(e: EstadoAgente, causas: readonly CausaEvaluada[]): boolean {
+  const d = (accion: Decision['accion'], extra: Partial<Decision> = {}): Decision => ({ accion, fuentes: [], causa: null, documento: '', justificacion: '', punteros: [], ...extra });
+  const sinLeer = e.fuentes.map((f) => f.id).filter((id) => !e.lecturas[id]);
+  const candidatas: Decision[] = [
+    ...(sinLeer.length ? [d('leer_fuentes', { fuentes: sinLeer })] : []),
+    d('enunciar_desviacion'), d('especificar_es_no_es'), d('barrer_weisbord'), d('generar_causas'), d('probar_causas'),
+    ...causas.flatMap((c) => [d('disenar_verificacion', { causa: c.id }), d('proponer_intervencion', { causa: c.id })]),
+  ];
+  return candidatas.every((x) => !revisarDecision(e, x, causas).ok);
 }
