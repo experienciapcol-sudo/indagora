@@ -1,5 +1,6 @@
 import type { FichaIndicador } from '../../nucleo/entregables/tipos';
 import { ListaChips } from '../agente/ChipEvidencia';
+import { IconoCheck, IconoX } from '../Iconos';
 import { TEXTOS_ENTREGABLES } from './textos';
 
 const T = TEXTOS_ENTREGABLES;
@@ -20,6 +21,7 @@ export function VistaIndicadores({ fichas }: { fichas: readonly FichaIndicador[]
                 <span>{T.indicadores.causa(k.causa)}</span>
               </header>
               <p className={k.smart.completa ? 'ent-smart ent-smart--ok' : 'ent-smart ent-smart--falta'} role="status">
+                {k.smart.completa ? <IconoCheck className="icono--chico" /> : <IconoX className="icono--chico" />}
                 {k.smart.completa ? T.indicadores.smartCompleta : T.indicadores.smartIncompleta(k.smart.faltan.join(', '))}
               </p>
               <dl className="ent-datos">

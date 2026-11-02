@@ -1,4 +1,5 @@
 import type { CasoLaboratorio } from '../../nucleo/laboratorio/tipos';
+import { IconoAlerta } from '../Iconos';
 import type { IntercambioPublico } from './api';
 import { TEXTOS_LAB } from './textos';
 
@@ -29,7 +30,7 @@ export function VistaEntrevistas({ caso, intercambios }: { caso: CasoLaboratorio
                 </>
               )}
               {x.fuga && (
-                <p className="lab-aviso-fuga" role="note">{TEXTOS_LAB.avisoFuga}</p>
+                <p className="lab-aviso-fuga" role="note"><IconoAlerta className="icono--chico" />{TEXTOS_LAB.avisoFuga}</p>
               )}
               <p className="lab-meta">{T.hechos(x.hechosRevelados)}</p>
             </li>

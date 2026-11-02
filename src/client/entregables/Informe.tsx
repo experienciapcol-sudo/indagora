@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { IconoDescargar, IconoImprimir } from '../Iconos';
 import { nombreArchivoInforme, parseInformeMarkdown } from './logica';
 import { TEXTOS_ENTREGABLES } from './textos';
 
@@ -25,9 +26,11 @@ export function Informe({ markdown, titulo }: { markdown: string; titulo: string
       <p className="ayuda">{T.informe.ayuda}</p>
       <div className="ent-acciones no-imprimir">
         <button type="button" className="boton" disabled={!markdown} onClick={() => descargar(markdown, titulo)}>
+          <IconoDescargar className="icono--chico" />
           {T.informe.descargar}
         </button>
         <button type="button" className="boton boton--secundario" disabled={!markdown} onClick={() => window.print()}>
+          <IconoImprimir className="icono--chico" />
           {T.informe.imprimir}
         </button>
       </div>

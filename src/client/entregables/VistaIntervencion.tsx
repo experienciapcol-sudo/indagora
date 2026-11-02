@@ -1,6 +1,7 @@
 import type { PlanIntervencion } from '../../nucleo/entregables/tipos';
 import { CUADRANTES } from '../../nucleo/entregables/matriz';
 import { ListaChips, NivelMini } from '../agente/ChipEvidencia';
+import { IconoFlecha, IconoReloj } from '../Iconos';
 import { gruposPorCarril } from './logica';
 import { TEXTOS_ENTREGABLES } from './textos';
 
@@ -13,7 +14,7 @@ export function VistaIntervencion({ plan, motivo }: { plan: PlanIntervencion | n
         <h4>{T.intervencion.titulo}</h4>
         <p className="ayuda">{T.intervencion.ayuda}</p>
         <p className="ent-solo-grande">
-          <span className="ent-solo">{T.soloVerificacion}</span> {motivo ?? T.intervencion.vacio}
+          <span className="ent-solo"><IconoReloj className="icono--chico" />{T.soloVerificacion}</span> {motivo ?? T.intervencion.vacio}
         </p>
       </div>
     );
@@ -39,6 +40,7 @@ export function VistaIntervencion({ plan, motivo }: { plan: PlanIntervencion | n
                   <header className="ent-tarjeta__cabeza">
                     <strong>{a.id} · {a.texto}</strong>
                     <span className={`ent-prioridad ent-prioridad--${a.prioridad.clase}`}>
+                      <IconoFlecha className="icono--chico" />
                       {T.intervencion.prioridad(T.prioridades[a.prioridad.clase], a.prioridad.puntaje)}
                     </span>
                   </header>

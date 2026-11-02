@@ -21,7 +21,7 @@ export function VistaPareto({ pareto, motivo }: { pareto: Pareto | null; motivo:
               <li key={b.categoria}>
                 <div className="ent-pareto__linea">
                   <span className="ent-pareto__nombre">{b.categoria}</span>
-                  <span>{T.pareto.barra(b.categoria, b.valor, b.unidad, b.porcentaje, b.acumulado)}</span>
+                  <span className="ent-pareto__datos">{T.pareto.barra(b.categoria, b.valor, b.unidad, b.porcentaje, b.acumulado)}</span>
                 </div>
                 <div className="ent-pareto__pista" role="img" aria-label={T.pareto.barra(b.categoria, b.valor, b.unidad, b.porcentaje, b.acumulado)}>
                   <span className="ent-pareto__barra" style={{ width: `${anchoRelativo(b.valor, maximo)}%` }} />

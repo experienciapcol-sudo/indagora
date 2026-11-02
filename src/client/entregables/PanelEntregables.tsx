@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { VistaAgente } from '../../nucleo/agente/tipos';
 import { huellaDeEstado } from '../../nucleo/entregables/generar';
 import type { EntregablesCaso } from '../../nucleo/entregables/tipos';
+import { IconoInfo } from '../Iconos';
 import { esAbortada } from '../api';
 import { generarEntregablesApi, obtenerEntregables } from './api';
 import { Informe } from './Informe';
@@ -84,14 +85,14 @@ export function PanelEntregables({ vista }: { vista: VistaAgente }) {
           <h3 id="t-entregables">{T.titulo}</h3>
           <p className="ayuda">{T.ayuda}</p>
         </div>
-        <button type="button" className="boton" disabled={generando} onClick={() => void generar()}>
+        <button type="button" className="boton" disabled={generando} aria-busy={generando} onClick={() => void generar()}>
           {generando ? T.generando : entregables ? T.botonRegenerar : T.botonGenerar}
         </button>
       </header>
 
       {error && <p className="aviso-error" role="alert">{error}</p>}
-      {desactualizado && entregables && <p className="aviso-estado" role="status">{T.desactualizado}</p>}
-      {entregables?.demo && <p className="aviso-estado" role="status">{T.demo}</p>}
+      {desactualizado && entregables && <p className="ent-aviso" role="status"><IconoInfo className="icono--chico" />{T.desactualizado}</p>}
+      {entregables?.demo && <p className="ent-aviso" role="status"><IconoInfo className="icono--chico" />{T.demo}</p>}
       {entregables && (
         <p className="ayuda">
           {fecha ? `${T.generadoEn(fecha)} · ` : ''}{T.costo(entregables.costoUsd)}

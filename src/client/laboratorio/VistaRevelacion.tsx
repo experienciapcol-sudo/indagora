@@ -1,5 +1,6 @@
 import type { CasoLaboratorio, VerdadLaboratorio } from '../../nucleo/laboratorio/tipos';
 import type { ResultadoComparacion } from '../../nucleo/laboratorio/tipos';
+import { IconoAlerta, IconoCheck, IconoX } from '../Iconos';
 import { TEXTOS_LAB } from './textos';
 
 interface Props {
@@ -20,6 +21,7 @@ export function VistaRevelacion({ caso, verdad, comparacion }: Props) {
     <section className="lab-tarjeta lab-revelacion" aria-labelledby="lab-revelacion-titulo">
       <h3 id="lab-revelacion-titulo">{T.titulo}</h3>
       <p className={`lab-veredicto lab-veredicto--${comparacion.veredicto}`} role="status">
+        {comparacion.veredicto === 'encontrada' ? <IconoCheck /> : comparacion.veredicto === 'parcial' ? <IconoAlerta /> : <IconoX />}
         {T.veredictos[comparacion.veredicto]}
       </p>
 

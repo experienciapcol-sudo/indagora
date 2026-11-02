@@ -1,60 +1,217 @@
-/* Entregables F5: pantalla e impresión. Usa las variables de ../estilos.css. */
-.panel-entregables { margin-top: 1.1rem; padding: 1rem 1.15rem 1.1rem; border: 1px solid var(--borde-fuerte); border-radius: 0.5rem; background: var(--tarjeta); }
-.panel-entregables__cabeza { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem 1.5rem; align-items: start; }
-.panel-entregables__cabeza h3 { font-family: var(--serif); font-size: 1.3rem; color: var(--tinta); }
-.entregables__rejilla { display: grid; gap: 1.4rem; margin-top: 1rem; }
-.ent-grupo { display: grid; gap: 0.55rem; align-content: start; min-width: 0; }
-.ent-grupo h4 { font-family: var(--serif); font-size: 1.15rem; color: var(--tinta); border-bottom: 1px solid var(--borde); padding-bottom: 0.3rem; }
-.ent-grupo h5 { font-family: var(--serif); font-size: 1rem; color: var(--tinta); margin-top: 0.5rem; }
-.ent-grupo h6 { font-size: 0.9rem; color: var(--tinta); }
-.ent-lista { display: grid; gap: 0.7rem; list-style: none; padding: 0; margin: 0; }
-.ent-tarjeta { display: grid; gap: 0.45rem; padding: 0.75rem 0.95rem; border: 1px solid var(--borde); border-left: 5px solid var(--n1-borde); border-radius: 0.3rem; background: var(--papel); }
-.ent-tarjeta__cabeza { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.3rem 0.8rem; align-items: baseline; }
-.ent-solo, .ent-tipo { display: inline-block; padding: 0.05rem 0.55rem; border: 1.5px solid var(--n1-borde); border-radius: 999px; background: var(--n1-fondo); color: var(--n1-texto); font-size: 0.75rem; font-weight: 700; }
-.ent-solo-grande { padding: 0.7rem 0.9rem; border: 1px dashed var(--n1-borde); border-radius: 0.3rem; background: var(--n1-fondo); }
-.ent-aviso-solo { font-size: 0.85rem; color: var(--n1-texto); }
-.ent-datos { display: grid; gap: 0.4rem 1.2rem; margin: 0; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
-.ent-datos dt { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--suave); }
-.ent-datos dd { margin: 0; font-size: 0.9rem; }
-.ent-pdsa { display: grid; gap: 0.4rem; list-style: none; padding: 0; margin: 0; }
-.ent-pdsa li { display: flex; flex-wrap: wrap; gap: 0.3rem 0.6rem; align-items: baseline; }
-.ent-fase { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--acento); min-width: 5.2rem; }
-.ent-carriles { display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
-.ent-carril { display: grid; gap: 0.6rem; align-content: start; }
-.ent-prioridad { font-size: 0.8rem; font-weight: 700; }
-.ent-prioridad--alta { color: var(--n3-texto); }
-.ent-prioridad--media { color: var(--n1-texto); }
-.ent-prioridad--baja { color: var(--suave); }
-.ent-matriz { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
-.ent-matriz__celda { padding: 0.7rem 0.85rem; border: 1px solid var(--borde-fuerte); border-radius: 0.3rem; background: var(--papel); }
-.ent-matriz__celda ul, .ent-listas ul { margin: 0.3rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.25rem; font-size: 0.88rem; }
-.ent-listas { display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
-.ent-smart { font-weight: 600; font-size: 0.88rem; }
-.ent-smart--ok { color: var(--n3-texto); }
-.ent-smart--falta { color: var(--falla); }
-.ent-pareto { display: grid; gap: 0.7rem; list-style: none; padding: 0; margin: 0; }
-.ent-pareto__linea { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.3rem 1rem; font-size: 0.88rem; }
+/* Entregables F5: pantalla e impresión (UI.md §5.15 y §3.3).
+   Usa los tokens de ../estilos.css; una sola tinta más los niveles. */
+.panel-entregables {
+  margin-top: var(--e-6);
+  padding-top: var(--e-5);
+  border-top: 2px solid var(--texto);
+  background: transparent;
+}
+.panel-entregables__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--e-3) var(--e-5);
+  align-items: start;
+  max-width: 1120px;
+}
+.panel-entregables__cabeza h3 {
+  font-family: var(--sans);
+  font-size: var(--t-h2);
+  font-weight: 600;
+  color: var(--texto);
+}
+.entregables__rejilla {
+  display: grid;
+  gap: 0;
+  margin-top: var(--e-4);
+  max-width: 1120px;
+}
+.ent-grupo {
+  display: grid;
+  gap: var(--e-2);
+  align-content: start;
+  min-width: 0;
+  padding: var(--e-5) 0;
+  border-top: 1px solid var(--borde);
+}
+.ent-grupo:first-child { border-top: 0; }
+.ent-grupo h4 {
+  font-family: var(--sans);
+  font-size: var(--t-h3);
+  font-weight: 600;
+  color: var(--texto);
+  padding-bottom: var(--e-2);
+  border-bottom: 1px solid var(--borde);
+}
+.ent-grupo h5 {
+  font-family: var(--sans);
+  font-size: var(--t-lectura);
+  font-weight: 600;
+  color: var(--texto);
+  margin-top: var(--e-3);
+}
+.ent-grupo h6 { font-size: var(--t-base); font-weight: 600; color: var(--texto); }
+.ent-lista { display: grid; gap: var(--e-3); list-style: none; padding: 0; margin: 0; }
+.ent-tarjeta {
+  display: grid;
+  gap: var(--e-2);
+  padding: var(--e-3) var(--e-4);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-3);
+  background: var(--superficie);
+}
+.ent-tarjeta__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--e-1) var(--e-3);
+  align-items: center;
+}
+.ent-solo, .ent-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-1);
+  padding: 2px var(--e-2);
+  border: 1px solid var(--alerta);
+  border-radius: var(--r-1);
+  background: var(--alerta-fondo);
+  color: var(--alerta);
+  font-size: var(--t-chica);
+  font-weight: 600;
+}
+.ent-tipo { border-color: var(--borde-fuerte); background: var(--superficie-2); color: var(--texto-2); }
+.ent-solo-grande {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2);
+  padding: var(--e-3) var(--e-4);
+  border: 1px dashed var(--alerta);
+  border-radius: var(--r-3);
+  background: var(--alerta-fondo);
+  color: var(--texto);
+}
+.ent-aviso-solo { font-size: var(--t-base); color: var(--alerta); }
+.ent-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-2);
+  margin-top: var(--e-3);
+  padding: var(--e-3) var(--e-4);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-2);
+  background: var(--superficie);
+  color: var(--texto);
+  font-size: var(--t-base);
+}
+.ent-aviso .icono { margin-top: 2px; color: var(--acento-tinta); }
+.ent-datos {
+  display: grid;
+  gap: var(--e-2) var(--e-5);
+  margin: 0;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+.ent-datos dt { font-size: var(--t-micro); font-weight: 600; color: var(--texto-2); }
+.ent-datos dd { margin: 0; font-size: var(--t-base); }
+.ent-pdsa { display: grid; gap: var(--e-2); list-style: none; padding: 0; margin: 0; }
+.ent-pdsa li { display: flex; flex-wrap: wrap; gap: var(--e-1) var(--e-2); align-items: baseline; }
+.ent-fase { font-size: var(--t-micro); font-weight: 600; color: var(--acento-tinta); min-width: 5.2rem; }
+.ent-carriles { display: grid; gap: var(--e-4); grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.ent-carril { display: grid; gap: var(--e-3); align-content: start; min-width: 0; }
+.ent-prioridad {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-1);
+  font-size: var(--t-chica);
+  font-weight: 600;
+}
+.ent-prioridad--alta { color: var(--ok); }
+.ent-prioridad--media { color: var(--alerta); }
+.ent-prioridad--baja { color: var(--texto-2); }
+.ent-matriz { display: grid; gap: var(--e-3); grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.ent-matriz__celda {
+  padding: var(--e-3) var(--e-4);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-3);
+  background: var(--superficie);
+}
+.ent-matriz__celda ul, .ent-listas ul { margin: var(--e-2) 0 0; padding-left: var(--e-4); display: grid; gap: var(--e-1); font-size: var(--t-base); list-style: disc; }
+.ent-listas { display: grid; gap: var(--e-4); grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+.ent-smart { display: flex; align-items: center; gap: var(--e-2); font-weight: 600; font-size: var(--t-base); }
+.ent-smart--ok { color: var(--ok); }
+.ent-smart--falta { color: var(--error); }
+.ent-pareto { display: grid; gap: var(--e-4); list-style: none; padding: 0; margin: 0; }
+.ent-pareto__linea { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--e-1) var(--e-4); font-size: var(--t-base); }
 .ent-pareto__nombre { font-weight: 600; text-transform: capitalize; }
-.ent-pareto__pista { display: flex; align-items: center; gap: 0.6rem; min-height: 1.1rem; background: color-mix(in srgb, var(--borde) 35%, transparent); border-radius: 0.2rem; overflow: hidden; }
-.ent-pareto__barra { display: block; height: 1.1rem; min-width: 2px; background: var(--acento); }
-.ent-pareto__acum { font-family: var(--mono); font-size: 0.72rem; color: var(--suave); }
-.ent-pregunta { font-family: var(--serif); font-size: 1rem; color: var(--tinta); }
-.ent-acciones { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-.informe { padding: 1.1rem 1.25rem; border: 1px solid var(--borde-fuerte); background: var(--fondo); color: var(--texto); display: grid; gap: 0.45rem; font-size: 0.92rem; line-height: 1.5; max-height: 42rem; overflow-y: auto; }
-.informe h1 { font-family: var(--serif); font-size: 1.5rem; color: var(--tinta); }
-.informe h2 { font-family: var(--serif); font-size: 1.2rem; color: var(--tinta); margin-top: 0.9rem; break-before: page; }
+.ent-pareto__datos { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.ent-pareto__pista {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  min-height: 12px;
+  margin: var(--e-1) 0;
+  background: var(--superficie-3);
+  border-radius: var(--r-1);
+  overflow: hidden;
+}
+.ent-pareto__barra { display: block; height: 12px; min-width: 2px; background: var(--acento); flex: none; }
+.ent-pareto__acum { font-family: var(--mono); font-size: var(--t-micro); font-variant-numeric: tabular-nums; color: var(--texto-2); }
+.ent-pregunta { font-family: var(--serif); font-size: var(--t-lectura); line-height: 1.6; color: var(--texto); }
+.ent-acciones { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+.ent-acciones .boton { display: inline-flex; align-items: center; gap: var(--e-2); }
+.informe {
+  padding: var(--e-5) var(--e-6);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--r-3);
+  background: var(--superficie);
+  color: var(--texto);
+  display: grid;
+  gap: var(--e-2);
+  font-size: var(--t-base);
+  line-height: 1.55;
+  max-width: 72ch;
+  max-height: 42rem;
+  overflow-y: auto;
+}
+.informe h1 { font-family: var(--sans); font-size: var(--t-h2); font-weight: 700; color: var(--texto); }
+.informe h2 { font-family: var(--sans); font-size: var(--t-h3); font-weight: 600; color: var(--texto); margin-top: var(--e-4); break-before: page; }
 .informe h2:first-of-type { break-before: auto; }
-.informe h3 { font-family: var(--serif); font-size: 1.02rem; color: var(--tinta); margin-top: 0.6rem; }
-.informe__li { padding-left: 0.8rem; }
-.informe__li--anidado { padding-left: 1.8rem; }
-.panel-entregables :focus-visible, .informe :focus-visible { outline: 3px solid var(--foco, var(--acento)); outline-offset: 2px; }
+.informe h3 { font-family: var(--sans); font-size: var(--t-lectura); font-weight: 600; color: var(--texto); margin-top: var(--e-3); }
+.informe p { font-family: var(--serif); font-size: var(--t-lectura); line-height: 1.65; }
+.informe__li { padding-left: var(--e-4); }
+.informe__li--anidado { padding-left: var(--e-6); }
+.panel-entregables :focus-visible, .informe :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+@media (max-width: 767px) {
+  .ent-carriles, .ent-matriz, .ent-listas { grid-template-columns: 1fr; }
+  .ent-acciones .boton { width: 100%; justify-content: center; }
+  .informe { padding: var(--e-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-entregables *, .informe * { transition-property: opacity !important; }
+}
 
-/* Impresión: solo el informe, como documento. El resto de la página se oculta. */
+/* Impresión: solo el informe, como documento sobrio de una sola tinta. */
 @media print {
   body * { visibility: hidden; }
   .informe, .informe * { visibility: visible; }
-  .informe { position: absolute; inset: 0; max-height: none; overflow: visible; border: 0; padding: 0; }
+  .informe {
+    position: absolute;
+    inset: 0;
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: #fff;
+    color: #000;
+    font-family: var(--serif);
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+  .informe h1, .informe h2, .informe h3 { font-family: var(--sans); color: #000; background: none; }
   .informe h2 { break-before: page; }
   .informe h2:first-of-type { break-before: auto; }
+  .informe h3 { break-after: avoid; }
+  .informe p, .informe__li { break-inside: avoid; }
   .no-imprimir { display: none !important; }
 }

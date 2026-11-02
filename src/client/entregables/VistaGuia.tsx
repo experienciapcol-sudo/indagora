@@ -1,5 +1,6 @@
 import type { ItemGuia } from '../../nucleo/entregables/tipos';
 import { ListaChips } from '../agente/ChipEvidencia';
+import { IconoInfo } from '../Iconos';
 import { TEXTOS_ENTREGABLES } from './textos';
 
 const T = TEXTOS_ENTREGABLES;
@@ -15,7 +16,7 @@ export function VistaGuia({ guia }: { guia: readonly ItemGuia[] }) {
         <ol className="ent-lista">
           {guia.map((g, i) => (
             <li key={i} className="ent-tarjeta">
-              <span className="ent-tipo">{T.guia.tipos[g.tipo]}</span>
+              <span className="ent-tipo"><IconoInfo className="icono--chico" />{T.guia.tipos[g.tipo]}</span>
               <p className="ent-pregunta">{g.pregunta}</p>
               <p>{T.guia.paraQuien(g.paraQuien)}</p>
               <p className="ayuda">{T.guia.objetivo(g.objetivo)}</p>

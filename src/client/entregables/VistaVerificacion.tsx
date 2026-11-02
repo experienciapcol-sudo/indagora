@@ -1,5 +1,6 @@
 import type { PlanVerificacion } from '../../nucleo/entregables/tipos';
 import { ListaChips, NivelMini } from '../agente/ChipEvidencia';
+import { IconoReloj } from '../Iconos';
 import { TEXTOS_AGENTE } from '../agente/textos';
 import { TEXTOS_ENTREGABLES } from './textos';
 
@@ -21,6 +22,7 @@ export function VistaVerificacion({ planes }: { planes: readonly PlanVerificacio
                   {T.verificacion.titulo} · {v.causa}
                 </strong>
                 <span className="ent-solo">
+                  <IconoReloj className="icono--chico" />
                   <NivelMini nivel={v.nivelAlGenerar} /> {TEXTOS_AGENTE.estadosCausa[v.estadoAlGenerar]} · {T.soloVerificacion}
                 </span>
               </header>

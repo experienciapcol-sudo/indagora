@@ -16,6 +16,7 @@ export function FormularioEmpresa({ ocupado, onCrear }: Props) {
   const [sintoma, setSintoma] = useState('');
   const [distractores, setDistractores] = useState(2);
   const [documentoClave, setDocumentoClave] = useState(true);
+  const [elegida, setElegida] = useState<string | null>(null);
 
   const valido = giro.trim().length >= 3 && giro.trim().length <= 80 && sintoma.trim().length >= 10 && sintoma.trim().length <= 200;
 
@@ -65,14 +66,14 @@ export function FormularioEmpresa({ ocupado, onCrear }: Props) {
         <p className="ayuda">{T.preparadasAyuda}</p>
         <div className="lab-preparadas">
           {CASOS_PREPARADOS.map((preparado) => (
-            <article key={preparado.caso.id} className="lab-preparada">
+            <article key={preparado.caso.id} className={elegida === preparado.caso.id ? 'lab-preparada lab-preparada--elegida' : 'lab-preparada'}>
               <h4>{preparado.caso.empresa.nombre}</h4>
               <p>{preparado.caso.empresa.descripcion}</p>
               <p className="lab-meta">
                 {T.personas(preparado.caso.personas.length)} · {preparado.caso.parametros.documentoClave ? T.conDocumentoClave : T.sinDocumentoClave}
               </p>
               <p className="lab-meta">{preparado.caso.personas.map((p) => p.rol).join(' · ')}</p>
-              <button type="button" className="boton boton--secundario" disabled={ocupado} onClick={() => onCrear({ preparado: preparado.caso.id })}>
+              <button type="button" className="boton boton--secundario" disabled={ocupado} aria-pressed={elegida === preparado.caso.id} onClick={() => { setElegida(preparado.caso.id); onCrear({ preparado: preparado.caso.id }); }}>
                 {T.usarPreparada}
               </button>
             </article>

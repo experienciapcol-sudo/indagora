@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { leerCabeceraWav } from '../../nucleo/laboratorio/voz';
+import { IconoMic } from '../Iconos';
 import { TEXTOS_LAB } from './textos';
 import { codificarWavMono16k, duracionSegundos, formatoBytes, formatoTiempo, MAX_SEGUNDOS, mezclarAMono, tamanoEstimadoWav } from './wavCliente';
 
@@ -118,6 +119,7 @@ export function GrabadoraVoz({ ocupado, onListo }: Props) {
           </button>
         ) : (
           <button type="button" className="boton" disabled={ocupado} onClick={() => void empezar()}>
+            <IconoMic className="icono--chico" />
             {T.grabar}
           </button>
         )}

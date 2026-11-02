@@ -5,6 +5,7 @@ import { obtenerAgente } from '../agente/api';
 import { PanelAgente } from '../agente/PanelAgente';
 import { crearLaboratorio, entrevistarLaboratorio, iniciarAgenteLaboratorio, revelarLaboratorio } from './api';
 import type { RespuestaRevelar, VistaLaboratorio } from './api';
+import { IconoAlerta, IconoInfo } from '../Iconos';
 import { FormularioEmpresa } from './FormularioEmpresa';
 import { PanelEntrevistaReal } from './PanelEntrevistaReal';
 import { TEXTOS_LAB } from './textos';
@@ -105,11 +106,11 @@ export function PanelLaboratorio({ siguienteIdFuente, onFuenteReal }: Props) {
     <section className="laboratorio" aria-labelledby="t-laboratorio">
       <div className="lab-cabeza">
         <h2 id="t-laboratorio">{T.titulo}</h2>
-        <p className="aviso-fijo" role="note">{T.avisoFicticio}</p>
+        <p className="lab-aviso-ficticio" role="note"><IconoInfo className="icono--chico" />{T.avisoFicticio}</p>
       </div>
 
       {enGrabado && (
-        <p className="lab-grabado-aviso" role="alert">{T.avisoGrabadoTitulo}</p>
+        <p className="lab-grabado-aviso" role="alert"><IconoAlerta className="icono--chico" />{T.avisoGrabadoTitulo}</p>
       )}
       {vista?.aviso && <p className="aviso-estado" role="status">{vista.aviso}</p>}
       {error && <p className="aviso-error" role="alert">{error}</p>}
