@@ -11,6 +11,7 @@ import { TALLER_EN } from './taller-en.mjs';
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const salida = resolve(aqui, '../public/tomas');
+const carpetaPaneles = resolve(aqui, '../public/paneles');
 const temporal = resolve(aqui, '../.tomas-tmp');
 const sesion = resolve(aqui, 'estado-sesion.json');
 const audio = resolve(aqui, 'entrevista-ficticia-en.wav');
@@ -264,6 +265,52 @@ async function tomaEntregables(id) {
   await pausa(1500);
 }
 
+// Sin costo: reabre dos agentes ya terminados (solo E1 y el caso completo) y recorre sus entregables.
+//   node scripts/grabar-tomas.mjs valor <url> <id-agente-E1> <id-agente-completo>
+async function tomaValor(idE1, idCompleto) {
+  const fijarId = (id) => pagina.evaluate((v) => sessionStorage.setItem('indagora-agente', v), id);
+  const foto = (n) => pagina.screenshot({ path: join(carpetaPaneles, n + '.png') });
+  const cerrarDetalle = async () => { await pagina.keyboard.press('Escape'); await pausa(500); const b = pagina.getByRole('button', { name: /close|cerrar/i }).first(); if (await b.isVisible().catch(() => false)) await b.click(); await pausa(500); };
+  mkdirSync(carpetaPaneles, { recursive: true });
+  // ── A: una sola fuente → plan de verificación
+  await pagina.goto(base + '/?lang=en', { waitUntil: 'networkidle' });
+  await fijarId(idE1);
+  await pagina.reload({ waitUntil: 'networkidle' });
+  await pausa(2500);
+  marca('valor A: agente con una fuente');
+  await suave(pagina.getByRole('heading', { name: 'Diagnosis deliverables' }), 'start');
+  await pausa(2500);
+  await suave(pagina.getByRole('heading', { name: 'Verification plan' }), 'start');
+  await pausa(3500); await foto('verificacion');
+  await pagina.mouse.wheel(0, 520); await pausa(2500);
+  await suave(pagina.getByRole('heading', { name: 'Intervention plan' }), 'start');
+  await pausa(3500); await foto('solo-verificacion');
+  marca('valor A listo');
+  // ── B: caso completo → hallazgo N4, plan de intervención, indicadores
+  await fijarId(idCompleto);
+  await pagina.reload({ waitUntil: 'networkidle' });
+  await pausa(2500);
+  marca('valor B: caso completo');
+  await suave(pagina.getByRole('heading', { name: 'Cause testing' }), 'start');
+  await pausa(2500); await foto('causas');
+  const chipN4 = pagina.locator('.chip-ev.nivel-4').first();
+  if (await chipN4.count()) { await clic(chipN4); await pausa(4500); await foto('oracion-n4'); await cerrarDetalle(); }
+  marca('valor B: oración que sostiene N4');
+  await suave(pagina.getByRole('heading', { name: 'Intervention plan' }), 'start');
+  await pausa(4000); await foto('intervencion');
+  await pagina.mouse.wheel(0, 420); await pausa(3500); await foto('intervencion-2');
+  const chipInt = pagina.locator('.entregables__rejilla .chip-ev').first();
+  if (await chipInt.count()) { await clic(chipInt); await pausa(4500); await foto('oracion-intervencion'); await cerrarDetalle(); }
+  marca('valor B: puntero de la intervención');
+  await suave(pagina.getByRole('heading', { name: 'Indicator sheets' }), 'start');
+  await pausa(4500); await foto('indicadores');
+  const rech = pagina.getByText(/The code rejected d+ proposed item/);
+  if (await rech.count()) { await suave(rech.first(), 'center'); await pausa(3500); await foto('rechazos'); }
+  await suave(pagina.getByRole('heading', { name: /^Report/ }), 'start');
+  await pausa(3500); await foto('informe');
+  marca('valor B listo');
+}
+
 async function tomaPrueba() {
   await abrir();
   await clic(pestana('Evidence'));
@@ -279,6 +326,7 @@ try {
   else if (toma === 'e1p') await tomaAgente(['E1'], true);
   else if (toma === 'completo') await tomaAgente(null);
   else if (toma === 'entregables') await tomaEntregables(process.argv[4]);
+  else if (toma === 'valor') await tomaValor(process.argv[4], process.argv[5]);
   else if (toma === 'prueba') await tomaPrueba();
   else throw new Error('Uso: node scripts/grabar-tomas.mjs lab|e1|completo|prueba [url-base]');
 } catch (e) {
