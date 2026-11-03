@@ -18,6 +18,9 @@ const scene = (n: number) => SCENES[n - 1];
 // Cuadro (relativo a la escena n) en que se dice una frase.
 const at = (n: number, frase: string) => fraseFrame(frase) - scene(n).from;
 
+// Ancla por frase; si la frase aún no está en la narración (audio sin regenerar) cae a una fracción de la escena.
+const atSafe = (n: number, frase: string, fraccion: number) => { try { return at(n, frase); } catch { return Math.round(scene(n).dur * fraccion); } };
+
 // ───────────── piezas ─────────────
 const Pill: React.FC<{ text: string; tone?: 'info' | 'danger' | 'ok' | 'warn'; from: number; to: number; left?: number; top?: number; big?: boolean }> = ({ text, tone = 'info', from, to, left = 96, top = 12, big }) => {
   const f = useCurrentFrame();
@@ -114,6 +117,34 @@ const Nodo: React.FC<{ x: number; y: number; w: number; h: number; titulo: strin
   );
 };
 
+const Tarjeta: React.FC<{ x: number; tag: string; sub: string; titulo: string; detalle: string; color: string; o: number }> = ({ x, tag, sub, titulo, detalle, color, o }) => (
+  <div style={{ position: 'absolute', left: x, top: 390, width: 760, height: 262, opacity: o, transform: `translateY(${(1 - o) * 26}px)`, background: C.panel, border: `2px solid ${color}`, borderRadius: 20, padding: '24px 32px', boxSizing: 'border-box' }}>
+    <div style={{ fontSize: 28, color, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>{tag}</div>
+    <div style={{ fontSize: 24, color: C.muted, marginTop: 4 }}>{sub}</div>
+    <div style={{ fontSize: 50, color: C.text, fontWeight: 800, marginTop: 20 }}>{titulo}</div>
+    <div style={{ fontSize: 23, color: C.muted, marginTop: 8 }}>{detalle}</div>
+  </div>
+);
+
+const MetodoPanel: React.FC<{ f: number; m: number; pm: number }> = ({ f, m, pm }) => {
+  if (pm <= 0) return null;
+  const chips = ['Ishikawa', 'Deming’s PDSA', 'Four actions (Kim & Mauborgne)', 'SMART (Doran)', 'Pareto (Juran)', 'Lewin · Kotter · ADKAR'];
+  return (
+    <AbsoluteFill>
+      <div style={{ position: 'absolute', top: 336, width: '100%', textAlign: 'center', fontSize: 40, fontWeight: 700, color: C.text, opacity: pm }}>The code picks the method from the case</div>
+      <Tarjeta x={160} tag="Sudden problem" sub="a start date, and something that still works" titulo="Kepner & Tregoe" detalle="Is / Is Not · then test every cause" color={C.accent} o={fade(f, m + 6, m + 24)} />
+      <Tarjeta x={1000} tag="Chronic problem" sub="no clear start, nothing to compare" titulo="Weisbord’s six boxes" detalle="purpose, structure, relationships, rewards, leadership, mechanisms" color={C.warn} o={fade(f, m + 40, m + 58)} />
+      <div style={{ position: 'absolute', top: 690, width: '100%', textAlign: 'center', fontSize: 28, color: C.muted, opacity: fade(f, m + 70, m + 86) }}>and, as the evidence allows:</div>
+      <div style={{ position: 'absolute', top: 740, width: '100%', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 14, padding: '0 50px', boxSizing: 'border-box' }}>
+        {chips.map((c, i) => (
+          <span key={c} style={{ opacity: fade(f, m + 76 + i * 6, m + 92 + i * 6), fontSize: 25, fontWeight: 600, color: C.text, border: `1.5px solid ${C.ok}`, borderRadius: 999, padding: '7px 18px', background: 'rgba(61,220,151,.08)' }}>{c}</span>
+        ))}
+      </div>
+      <div style={{ position: 'absolute', top: 860, width: '100%', textAlign: 'center', fontSize: 24, color: C.muted, opacity: fade(f, m + 120, m + 136) }}>Declined on purpose: the five whys (one chain tends to confirm the first guess)</div>
+    </AbsoluteFill>
+  );
+};
+
 const Escena3: React.FC = () => {
   const f = useCurrentFrame();
   const ag = at(3, 'One investigating agent');
@@ -128,6 +159,9 @@ const Escena3: React.FC = () => {
     { x: 960, y: 900, titulo: 'Plan writer', sub: 'every line points to a sentence', a: n3, color: C.accent },
   ];
   const og = fade(f, gate - 6, gate + 20);
+  const m = atSafe(3, 'The code also', 0.72);
+  const pm = fade(f, m, m + 18);
+  const dim = 1 - fade(f, m - 8, m + 14);
   return (
     <AbsoluteFill style={{ background: C.bg, fontFamily: FONT }}>
       <div style={{ position: 'absolute', top: 70, width: '100%', textAlign: 'center', opacity: fade(f, 6, 24) }}>
@@ -135,6 +169,7 @@ const Escena3: React.FC = () => {
         <div style={{ fontSize: 36, color: C.muted, marginTop: 6 }}>the organizational diagnosis agent that investigates before it prescribes.</div>
         <div style={{ fontSize: 26, color: C.accent, marginTop: 12 }}>Built on Meta’s Muse models</div>
       </div>
+      <div style={{ position: 'absolute', inset: 0, opacity: dim }}>
       <svg width={1920} height={1080} style={{ position: 'absolute', inset: 0 }}>
         {nodos.map((n, i) => (
           <line key={i} x1={cx} y1={cy} x2={n.x} y2={n.y} stroke={C.line} strokeWidth={3} strokeDasharray="8 8" opacity={fade(f, n.a, n.a + 14)} />
@@ -159,6 +194,8 @@ const Escena3: React.FC = () => {
       <div style={{ position: 'absolute', left: cx + 215, top: cy - 110, opacity: og, fontSize: 28, color: C.ok, fontWeight: 700, width: 360 }}>
         Code is the referee:<br /><span style={{ color: C.muted, fontWeight: 400 }}>checks every step, can say no</span>
       </div>
+      </div>
+      <MetodoPanel f={f} m={m} pm={pm} />
     </AbsoluteFill>
   );
 };
@@ -196,15 +233,12 @@ const Escena6: React.FC = () => {
       <Meter from={at(6, 'Now add') + 10} to={scene(6).dur} steps={[[0, 2], [two, 3], [doc, 4]]} />
       <Pill text="Now with all four sources: three interviews and the delivery log" tone="ok" from={at(6, 'Now add')} to={at(6, 'Specialist readers') - 4} />
       <Pill text="Specialist readers go through every source in parallel" from={at(6, 'Specialist readers')} to={a - 4} />
-      <Pill text="Where it happens / where it doesn’t" from={a} to={two - 4} />
-      <Pill text="Map of possible causes" from={two - 8} to={doc - 4} />
+      <Pill text="Kepner–Tregoe: where it happens / where it doesn’t" from={a} to={two - 4} />
+      <Pill text="Ishikawa: map of possible causes" from={two - 8} to={doc - 4} />
       <Pill text="Stop rule: the agent only names a cause when the evidence holds" tone="ok" from={cause} to={scene(6).dur} />
     </Pantalla>
   );
 };
-
-// Anchas por frase; si la frase aún no está en la narración (audio sin regenerar) cae a una fracción de la escena.
-const atSafe = (n: number, frase: string, fraccion: number) => { try { return at(n, frase); } catch { return Math.round(scene(n).dur * fraccion); } };
 
 const Trozo7: React.FC<{ src: string; srcS: number; desde: number; hasta: number }> = ({ src, srcS, desde, hasta }) => {
   const alloc = Math.max(8, hasta - desde);
@@ -233,9 +267,9 @@ const Escena7: React.FC = () => {
         <Trozo7 src="v7e" srcS={7} desde={e} hasta={fin} />
       </div>
       <Pill text="The finding: backed by a document (level N4)" tone="ok" from={a + 6} to={b - 4} />
-      <Pill text="One witness → a small test first (plan, try, check, adjust)" tone="warn" from={b} to={c - 4} />
-      <Pill text="A document backs it → intervention plan, sorted by effort and impact" tone="ok" from={c} to={d - 4} />
-      <Pill text="Targets with a baseline, a date and an owner" tone="ok" from={d} to={e - 4} />
+      <Pill text="One witness → a small test first (Deming’s PDSA: plan, try, check, adjust)" tone="warn" from={b} to={c - 4} />
+      <Pill text="A document backs it → intervention plan (Kim & Mauborgne’s four actions)" tone="ok" from={c} to={d - 4} />
+      <Pill text="Targets with a baseline, a date and an owner (Doran’s SMART)" tone="ok" from={d} to={e - 4} />
       <Pill text="Every claim links to the exact sentence" tone="info" from={e} to={fin} />
     </AbsoluteFill>
   );

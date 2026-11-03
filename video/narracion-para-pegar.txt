@@ -2,7 +2,7 @@ A furniture workshop keeps missing delivery dates on its closets. A customer jus
 
 If you work as a consultant, you've seen some version of this. You interview four people and get four opinions. The client wants answers by Friday, and the easy move is to recommend something before you've checked anything.
 
-Indagora is built for that moment. It runs on Meta's Muse models. One investigating agent plans the work and hands pieces to specialist roles: one reads each interview, one maps possible causes, one writes the plan. Before any step runs, plain code checks it and can say no.
+Indagora is built for that moment. It runs on Meta's Muse models. One investigating agent plans the work and hands pieces to specialist roles: one reads each interview, one maps possible causes, one writes the plan. Before any step runs, plain code checks it and can say no. The code also picks the method from the case: Kepner and Tregoe's problem analysis for a sudden problem, Weisbord's six boxes for a chronic one.
 
 You start with what you have: typed notes, or audio from the interview itself. I record a question, Indagora transcribes it, and I mark who said what. Every sentence gets an ID, so every conclusion can point back to the words a real person said.
 

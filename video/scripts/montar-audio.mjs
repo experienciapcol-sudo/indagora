@@ -74,6 +74,15 @@ if (existsSync('public/narracion-bloque7.mp3')) {
   console.log('bloque 7: se usa public/narracion-bloque7.mp3');
 } else console.log('bloque 7: el del MP3 original (no hay narracion-bloque7.mp3)');
 
+// Frase extra al final del bloque 3 (la del método), si existe public/narracion-bloque3b.mp3.
+if (existsSync('public/narracion-bloque3b.mp3')) {
+  ff(['-i', 'public/narracion-bloque3b.mp3', '-ar', String(SR), '-ac', '1', '-c:a', 'pcm_s16le', '.tomas-tmp/b3b-44.wav']);
+  const extra = comprimir(leerWav('.tomas-tmp/b3b-44.wav'));
+  const union = new Int16Array(bloques[2].pcm.length + Math.round(0.45 * SR) + extra.pcm.length);
+  union.set(bloques[2].pcm, 0); union.set(extra.pcm, bloques[2].pcm.length + Math.round(0.45 * SR));
+  bloques[2] = { pcm: union, ahorro: bloques[2].ahorro + extra.ahorro, n: bloques[2].n + extra.n };
+  console.log('bloque 3: se agrega public/narracion-bloque3b.mp3');
+}
 const partes = [new Int16Array(Math.round(LEAD_S * SR))];
 bloques.forEach((b, i) => { if (i > 0) partes.push(new Int16Array(Math.round(PAD_S * SR))); partes.push(b.pcm); });
 const total = partes.reduce((s, a) => s + a.length, 0);

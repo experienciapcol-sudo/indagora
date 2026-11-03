@@ -1,0 +1,1 @@
+The code also picks the method from the case: Kepner and Tregoe's problem analysis for a sudden problem, Weisbord's six boxes for a chronic one.
