@@ -128,19 +128,20 @@ const Tarjeta: React.FC<{ x: number; tag: string; sub: string; titulo: string; d
 
 const MetodoPanel: React.FC<{ f: number; m: number; pm: number }> = ({ f, m, pm }) => {
   if (pm <= 0) return null;
+  const kt = atSafe(3, 'Kepner and', 0.8) - 6;
+  const wb = atSafe(3, "Weisbord's six", 0.9) - 6;
   const chips = ['Ishikawa', 'Deming’s PDSA', 'Four actions (Kim & Mauborgne)', 'SMART (Doran)', 'Pareto (Juran)', 'Lewin · Kotter · ADKAR'];
   return (
     <AbsoluteFill>
       <div style={{ position: 'absolute', top: 336, width: '100%', textAlign: 'center', fontSize: 40, fontWeight: 700, color: C.text, opacity: pm }}>The code picks the method from the case</div>
-      <Tarjeta x={160} tag="Sudden problem" sub="a start date, and something that still works" titulo="Kepner & Tregoe" detalle="Is / Is Not · then test every cause" color={C.accent} o={fade(f, m + 6, m + 24)} />
-      <Tarjeta x={1000} tag="Chronic problem" sub="no clear start, nothing to compare" titulo="Weisbord’s six boxes" detalle="purpose, structure, relationships, rewards, leadership, mechanisms" color={C.warn} o={fade(f, m + 40, m + 58)} />
-      <div style={{ position: 'absolute', top: 690, width: '100%', textAlign: 'center', fontSize: 28, color: C.muted, opacity: fade(f, m + 70, m + 86) }}>and, as the evidence allows:</div>
+      <Tarjeta x={160} tag="Sudden problem" sub="a start date, and something that still works" titulo="Kepner & Tregoe" detalle="Is / Is Not · then test every cause" color={C.accent} o={fade(f, kt, kt + 18)} />
+      <Tarjeta x={1000} tag="Chronic problem" sub="no clear start, nothing to compare" titulo="Weisbord’s six boxes" detalle="purpose, structure, relationships, rewards, leadership, mechanisms" color={C.warn} o={fade(f, wb, wb + 18)} />
+      <div style={{ position: 'absolute', top: 690, width: '100%', textAlign: 'center', fontSize: 28, color: C.muted, opacity: fade(f, wb + 22, wb + 36) }}>and, as the evidence allows:</div>
       <div style={{ position: 'absolute', top: 740, width: '100%', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 14, padding: '0 50px', boxSizing: 'border-box' }}>
         {chips.map((c, i) => (
-          <span key={c} style={{ opacity: fade(f, m + 76 + i * 6, m + 92 + i * 6), fontSize: 25, fontWeight: 600, color: C.text, border: `1.5px solid ${C.ok}`, borderRadius: 999, padding: '7px 18px', background: 'rgba(61,220,151,.08)' }}>{c}</span>
+          <span key={c} style={{ opacity: fade(f, wb + 28 + i * 4, wb + 42 + i * 4), fontSize: 25, fontWeight: 600, color: C.text, border: `1.5px solid ${C.ok}`, borderRadius: 999, padding: '7px 18px', background: 'rgba(61,220,151,.08)' }}>{c}</span>
         ))}
       </div>
-      <div style={{ position: 'absolute', top: 860, width: '100%', textAlign: 'center', fontSize: 24, color: C.muted, opacity: fade(f, m + 120, m + 136) }}>Declined on purpose: the five whys (one chain tends to confirm the first guess)</div>
     </AbsoluteFill>
   );
 };

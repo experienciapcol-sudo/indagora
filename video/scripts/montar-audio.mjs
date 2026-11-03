@@ -12,7 +12,7 @@ import { spawnSync } from 'node:child_process';
 const SR = 44100, FRAME = SR / 100; // ventanas de 10 ms
 const UMBRAL = 413;                 // ≈ -38 dB
 const LARGA = 0.6, QUEDA = 0.4;
-const PAD_S = 0.9, LEAD_S = 0.8, TEMPO = 0.92;
+const PAD_S = 0.8, LEAD_S = 0.8, TEMPO = 0.95;
 
 const ff = (args) => spawnSync('npx', ['remotion', 'ffmpeg', '-y', ...args], { shell: true, encoding: 'utf8' });
 

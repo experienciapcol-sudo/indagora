@@ -26,7 +26,7 @@ Indagora then:
 6. Distinguishes between causes that still need verification and causes that are strong enough to justify intervention.
 7. Stops when its stopping criterion is met, or returns a partial delivery when progress depends on the consultant.
 
-The demo case is "Carpintería Velandria," a fictional furniture workshop with late deliveries. In `interno/muse/CONTEXTO.md`, the planted cause is described as a hardware supplier change in February, after which supply took 9.4 days instead of 3.1 days. That planted truth is used only for tests and evaluation; it is not supplied to the agent as evidence.
+The demo case is "Carpintería Velandria," a fictional furniture workshop with late deliveries. The planted cause (kept in `src/nucleo/casos/taller.verdad.ts`) is a hardware supplier change in February, after which supply took 9.4 days instead of 3.1 days. That planted truth is used only for tests and evaluation; it is not supplied to the agent as evidence.
 
 ## How the agent works
 

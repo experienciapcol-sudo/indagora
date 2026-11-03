@@ -1,56 +1,56 @@
 [
   {
     "bloque": 1,
-    "inicioMs": 900,
-    "finMs": 16240,
+    "inicioMs": 880,
+    "finMs": 15730,
     "texto": "A furniture workshop keeps missing deliv"
   },
   {
     "bloque": 2,
-    "inicioMs": 17320,
-    "finMs": 30210,
+    "inicioMs": 16670,
+    "finMs": 29150,
     "texto": "If you work as a consultant, you've seen"
   },
   {
     "bloque": 3,
-    "inicioMs": 31290,
-    "finMs": 50540,
+    "inicioMs": 30090,
+    "finMs": 58230,
     "texto": "Indagora is built for that moment. It ru"
   },
   {
     "bloque": 4,
-    "inicioMs": 51610,
-    "finMs": 67210,
+    "inicioMs": 59170,
+    "finMs": 74270,
     "texto": "You start with what you have: typed note"
   },
   {
     "bloque": 5,
-    "inicioMs": 68280,
-    "finMs": 86340,
+    "inicioMs": 75220,
+    "finMs": 92690,
     "texto": "Watch what happens with only the owner's"
   },
   {
     "bloque": 6,
-    "inicioMs": 87420,
-    "finMs": 116060,
+    "inicioMs": 93630,
+    "finMs": 121370,
     "texto": "Now add the shop foreman, the purchasing"
   },
   {
     "bloque": 7,
-    "inicioMs": 117110,
-    "finMs": 140140,
+    "inicioMs": 122290,
+    "finMs": 144580,
     "texto": "Then the findings turn into work you can"
   },
   {
     "bloque": 8,
-    "inicioMs": 141210,
-    "finMs": 158380,
+    "inicioMs": 145520,
+    "finMs": 162140,
     "texto": "We tested it against a single prompt on "
   },
   {
     "bloque": 9,
-    "inicioMs": 159500,
-    "finMs": 172140,
+    "inicioMs": 163130,
+    "finMs": 175380,
     "texto": "For a consultant, that means a diagnosis"
   }
 ]
