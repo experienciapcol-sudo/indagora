@@ -219,3 +219,11 @@ Honesty about the boundaries is part of the design:
 ## Foundations
 
 The deliverables follow published methods, cited in the code where they are implemented: Kepner and Tregoe (1965) for problem analysis; Weisbord (1976) for the six-box sweep; Denzin (1978) for triangulation behind the evidence log; Deming's PDSA cycle for verification plans; Flanagan (1954) and Glaser and Strauss (1967) for the next-interview guide; Kim and Mauborgne (2005) for the four-actions matrix in intervention planning; Doran (1981) for indicator criteria; Juran's Pareto principle for cause concentration; Block (1981) for the feedback report.
+
+## Demo video
+
+The 3-minute demo video is built in `video/` with [Remotion](https://www.remotion.dev). The product footage was recorded against a local server with real Meta Model API calls (`video/scripts/grabar-tomas.mjs`, Playwright); some scenes reopen saved cases and call no model. The English version of the workshop case used on screen is a faithful translation (`video/scripts/taller-en.mjs`). The voice-over was generated with ElevenLabs (free plan): *Voice: ElevenLabs*. Remotion has its own license (see remotion.dev/license); the MIT license below covers this project's own code, not Remotion.
+
+## License
+
+[MIT](LICENSE).
