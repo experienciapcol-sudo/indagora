@@ -84,6 +84,22 @@ describe('hallazgo 8: todas las personas reciben rondas profundas', () => {
     }
     expect(intercambiosEntrevistados(caso5)).toBe(true);
   });
+
+  // Revisión final (3 nov): con 4 o 5 personas el tope dejaba fuera las rondas documentales,
+  // así que el documento clave nunca se entregaba.
+  it('con 4 o 5 personas y hasta 2 documentos, todos los documentos entran en el plan', () => {
+    for (const n of [4, 5]) {
+      const caso: CasoLaboratorio = {
+        ...caso5,
+        personas: caso5.personas.slice(0, n),
+        documentos: [{ id: 'D1', titulo: 'Doc', esClave: true, disponible: false }, { id: 'D2', titulo: 'Otro', esClave: false, disponible: false }],
+      };
+      const plan = planDeRondas(caso);
+      expect(plan.length).toBeLessThanOrEqual(MAX_INTERCAMBIOS);
+      expect(plan.filter((r) => r.tipo === 'documental').map((r) => r.persona)).toEqual(['D1', 'D2']);
+      expect(intercambiosEntrevistados(caso)).toBe(true);
+    }
+  });
 });
 
 describe('hallazgos 9 y 10: hablantes sin asignar y roles inyectables', () => {

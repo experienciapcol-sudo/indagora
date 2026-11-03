@@ -10,13 +10,15 @@ export function planDeRondas(c: CasoLaboratorio): { persona: string; tipo: TipoP
   const plan: { persona: string; tipo: TipoPregunta }[] = [];
   // Por fases dentro del tope: primero TODAS las personas reciben una ronda
   // profunda (incidente, donde suelen salir los hechos de causa) antes de
-  // profundizar en nadie; después cuantitativa, documentos y el resto.
+  // profundizar en nadie; después documentos, cuantitativa y el resto.
+  // Los documentos van antes de la cuantitativa: con 5 personas y 2 documentos
+  // (los máximos de validarCaso) suman 12 y el documento clave siempre se entrega.
   // Nadie queda solo con la pregunta abierta; qué tipos faltan por persona
   // lo expone coberturaRondas en vez de ocultarlo.
   for (const persona of c.personas) plan.push({ persona: persona.id, tipo: 'abierta' });
   for (const persona of c.personas) plan.push({ persona: persona.id, tipo: 'incidente' });
-  for (const persona of c.personas) plan.push({ persona: persona.id, tipo: 'cuantitativa' });
   for (const doc of c.documentos) plan.push({ persona: doc.id, tipo: 'documental' });
+  for (const persona of c.personas) plan.push({ persona: persona.id, tipo: 'cuantitativa' });
   for (const tipo of ['temporal', 'contraste'] as TipoPregunta[]) {
     for (const persona of c.personas) plan.push({ persona: persona.id, tipo });
   }
