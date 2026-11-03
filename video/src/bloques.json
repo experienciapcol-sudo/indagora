@@ -1,0 +1,56 @@
+[
+  {
+    "bloque": 1,
+    "inicioMs": 60,
+    "finMs": 15940,
+    "texto": "A furniture workshop keeps missing deliv"
+  },
+  {
+    "bloque": 2,
+    "inicioMs": 15940,
+    "finMs": 29540,
+    "texto": "If you work as a consultant, you've seen"
+  },
+  {
+    "bloque": 3,
+    "inicioMs": 29540,
+    "finMs": 49020,
+    "texto": "Indagora is built for that moment. It ru"
+  },
+  {
+    "bloque": 4,
+    "inicioMs": 49020,
+    "finMs": 65780,
+    "texto": "You start with what you have: typed note"
+  },
+  {
+    "bloque": 5,
+    "inicioMs": 65780,
+    "finMs": 85220,
+    "texto": "Watch what happens with only the owner's"
+  },
+  {
+    "bloque": 6,
+    "inicioMs": 85220,
+    "finMs": 115300,
+    "texto": "Now add the shop foreman, the purchasing"
+  },
+  {
+    "bloque": 7,
+    "inicioMs": 115300,
+    "finMs": 131020,
+    "texto": "Next it writes what you'd hand a client:"
+  },
+  {
+    "bloque": 8,
+    "inicioMs": 131020,
+    "finMs": 148600,
+    "texto": "We tested it against a single prompt on "
+  },
+  {
+    "bloque": 9,
+    "inicioMs": 148600,
+    "finMs": 160900,
+    "texto": "For a consultant, that means a diagnosis"
+  }
+]
