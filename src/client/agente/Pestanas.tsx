@@ -1,14 +1,17 @@
 import type { KeyboardEvent } from 'react';
 import { TEXTOS_AGENTE } from './textos';
+import { TEXTOS_FLUJO } from '../flujo/textos';
 
-export type Pestana = 'agente' | 'evidencia' | 'laboratorio';
+export type Pestana = 'agente' | 'evidencia' | 'laboratorio' | 'flujo';
 
-const ORDEN: readonly Pestana[] = ['agente', 'evidencia', 'laboratorio'];
+// "Cómo funciona" va al final: la app sigue abriendo en el agente.
+const ORDEN: readonly Pestana[] = ['agente', 'evidencia', 'laboratorio', 'flujo'];
 
 const ETIQUETAS: Record<Pestana, string> = {
   agente: TEXTOS_AGENTE.pestanas.agente,
   evidencia: TEXTOS_AGENTE.pestanas.evidencia,
   laboratorio: 'Laboratorio',
+  flujo: TEXTOS_FLUJO.pestana,
 };
 
 // Pestañas con teclado: flechas, inicio y fin mueven la selección (patrón WAI-ARIA).

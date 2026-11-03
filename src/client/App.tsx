@@ -10,6 +10,8 @@ import type { Pestana } from './agente/Pestanas';
 import { Encabezado } from './Encabezado';
 import type { EstadoServicio } from './Encabezado';
 import { PanelLaboratorio } from './laboratorio/PanelLaboratorio';
+import { PanelFlujo } from './flujo/PanelFlujo';
+import { TEXTOS_FLUJO } from './flujo/textos';
 import { siguienteId as siguienteIdFuente } from './sesion';
 import { PanelAnalisis } from './PanelAnalisis';
 import { PanelFuentes } from './PanelFuentes';
@@ -32,6 +34,13 @@ export default function App() {
   const [deteniendo, setDeteniendo] = useState(false);
   const [aviso, setAviso] = useState('');
   const [pestana, setPestana] = useState<Pestana>('agente');
+  // Desde un enlace o botón: cambia de pestaña y lleva el foco a ella, arriba.
+  const irAPestana = (p: Pestana) => {
+    setPestana(p);
+    const boton = document.getElementById(`pestana-${p}`);
+    boton?.focus();
+    boton?.scrollIntoView({ block: 'start' });
+  };
 
   // El bucle de análisis lee siempre el estado más reciente a través de esta referencia.
   const estadosRef = useRef<EstadosPorFuente>({});
@@ -178,7 +187,10 @@ export default function App() {
   return (
     <div className="pagina">
       <Encabezado servicio={servicio} gasto={gasto} />
-      <p className="regla-nivel">{T.reglaNivel}</p>
+      <p className="regla-nivel">
+        {T.reglaNivel}
+        <button type="button" className="enlace-flujo" onClick={() => irAPestana('flujo')}>{TEXTOS_FLUJO.enlace}</button>
+      </p>
       <Pestanas activa={pestana} onCambiar={setPestana} />
 
       <main>
@@ -194,6 +206,10 @@ export default function App() {
               setPestana('evidencia');
             }}
           />
+        </div>
+
+        <div role="tabpanel" id="panel-flujo" aria-labelledby="pestana-flujo" hidden={pestana !== 'flujo'}>
+          <PanelFlujo onIrAlAgente={() => irAPestana('agente')} />
         </div>
 
         <div role="tabpanel" id="panel-evidencia" aria-labelledby="pestana-evidencia" hidden={pestana !== 'evidencia'}>
