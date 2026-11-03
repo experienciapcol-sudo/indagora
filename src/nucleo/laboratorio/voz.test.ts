@@ -25,6 +25,11 @@ describe('voz', () => {
     expect(leerCabeceraWav(wav(16000, 2)).motivo).toContain('mono');
     expect(leerCabeceraWav(wav(44100, 1)).motivo).toContain('16 o 24 kHz');
   });
+  it('un chunk data que declara menos bytes de los que trae no abarata la duración', () => {
+    const b = wav(16000, 1, 10);
+    new DataView(b.buffer).setUint32(40, 2, true);
+    expect(leerCabeceraWav(b).duracionS).toBe(10);
+  });
   it('lo que no es WAV se rechaza', () => {
     expect(leerCabeceraWav(new Uint8Array([1, 2, 3])).motivo).toContain('no es un WAV');
   });

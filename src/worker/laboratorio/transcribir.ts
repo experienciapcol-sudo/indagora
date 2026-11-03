@@ -38,7 +38,11 @@ export function adaptarRespuestaAsr(json: unknown): SegmentoDiarizado[] {
   return segmentos;
 }
 
+export const AVISO_VOZ_DEMO = 'Modo demostración: la voz no se transcribe porque eso llamaría a la API de Meta. Pega la transcripción como texto o usa un caso preparado.';
+
 export async function transcribirAudio(deps: DependenciasVoz, sesion: string, bytes: Uint8Array): Promise<{ segmentos: SegmentoDiarizado[]; texto: string; duracionS: number; costoUsd: number }> {
+  // Como llamarMeta: en DEMO_MODE nada sale a la API ni se registra gasto.
+  if (deps.env.DEMO_MODE === 'true') throw new ErrorTranscripcion(AVISO_VOZ_DEMO, 403);
   if (bytes.length > 32 * 1024 * 1024) throw new ErrorTranscripcion('El audio supera los 32 MB.', 413);
   const info = leerCabeceraWav(bytes);
   if (!info.valida) throw new ErrorTranscripcion(info.motivo ?? 'El archivo no es un WAV válido.');

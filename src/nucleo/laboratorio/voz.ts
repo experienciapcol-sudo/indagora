@@ -21,7 +21,9 @@ export function leerCabeceraWav(b: Uint8Array): InfoWav {
     if (id === 'fmt ' && datos + 16 <= b.length) {
       formato = u16(b, datos); canales = u16(b, datos + 2); muestraHz = u32(b, datos + 4); bits = u16(b, datos + 14);
     }
-    if (id === 'data') { bytesDatos = Math.min(tam, b.length - datos); break; }
+    // Todo lo que viene después de la cabecera de data cuenta: el ASR recibe el archivo entero,
+    // así que un tamaño declarado menor no puede abaratar la reserva de gasto.
+    if (id === 'data') { bytesDatos = b.length - datos; break; }
     offset = datos + tam + (tam % 2);
   }
   const info: InfoWav = { ...base, canales, muestraHz, bits };

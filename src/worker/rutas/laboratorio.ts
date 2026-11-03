@@ -13,7 +13,7 @@ import { dentroDelLimite } from '../gasto/limite';
 import { ErrorMeta } from '../meta/cliente';
 import { CasoInvalido, generarCaso } from '../laboratorio/generarCaso';
 import { ejecutarSimulacion, SUBTOPE_LAB_USD } from '../laboratorio/simular';
-import { ErrorTranscripcion, transcribirAudio } from '../laboratorio/transcribir';
+import { AVISO_VOZ_DEMO, ErrorTranscripcion, transcribirAudio } from '../laboratorio/transcribir';
 import { asignarAgenteSiVacio, crearLab, gastoLabSesion, guardarLab, leerGrabado, leerLab, limpiarAgenteSiEs, reclamarEntrevistaLab, type FilaLab } from '../laboratorio/almacenLab';
 import { ipDe, type Ambiente } from './sesion';
 
@@ -214,6 +214,8 @@ rutasLaboratorio.post('/laboratorio/:id/revelar', async (c) => {
 const MAX_AUDIO_BYTES = 32 * 1024 * 1024;
 
 rutasLaboratorio.post('/voz/transcribir', async (c) => {
+  // Antes de leer el cuerpo: en DEMO_MODE no se transcribe (transcribirAudio también lo revisa).
+  if (c.env.DEMO_MODE === 'true') return c.json({ error: AVISO_VOZ_DEMO }, 403);
   if (!(await dentroDelLimite(c.env.DB, `voz:${ipDe(c)}`, LIMITE_PASOS))) return c.json({ error: 'Demasiadas transcripciones seguidas; espera un minuto.' }, 429);
   // Rechazo por Content-Length ANTES de interpretar el formulario o leer el cuerpo:
   // se deja margen para las fronteras del multipart sobre los 32 MB de audio.
