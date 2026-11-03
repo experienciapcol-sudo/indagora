@@ -4,6 +4,9 @@ import app from '../index';
 import type { Bindings } from '../env';
 import { d1Falsa } from '../gasto/d1-falsa';
 import { MODELOS_POR_OMISION } from '../../config/models';
+import { VISTA_EJEMPLO } from '../../client/agente/ejemplo';
+import { clavePar } from '../../nucleo/niveles';
+import type { VistaAgente } from '../../nucleo/agente/tipos';
 
 const env = (extra: Partial<Bindings> = {}): Bindings => ({
   DB: d1Falsa(), META_API_KEY: 'llave-de-prueba', META_API_BASE_URL: 'https://meta.prueba/v1',
@@ -26,7 +29,32 @@ const subirAudio = (e: Bindings, bytes: Uint8Array) => {
 };
 afterEach(() => vi.unstubAllGlobals());
 
+const pedir = (ruta: string, e: Bindings, cookie: string, cuerpo?: unknown) =>
+  app.request(ruta, { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo) }, e);
+
 describe('revisión final', () => {
+  it('retirar la corroboración que daba N3 retira la intervención de esa causa', async () => {
+    const e = env();
+    const cookie = (await app.request('/api/gasto', {}, e)).headers.get('set-cookie')!.split(';')[0];
+    const sesion = cookie.split('=')[1].split('.')[0];
+    const estado = structuredClone(VISTA_EJEMPLO.estado);
+    estado.id = crypto.randomUUID();
+    // C1 queda sostenida solo por el testimonio E2-A04, que sube por dos corroboraciones confirmadas.
+    estado.causas = estado.causas.map((c) => (c.id === 'C1' ? { ...c, evidencia: ['E2-A04'] } : c));
+    await e.DB.prepare('INSERT INTO agentes (id, sesion, estado) VALUES (?1, ?2, ?3)').bind(estado.id, sesion, JSON.stringify(estado)).run();
+
+    const r1 = await pedir(`/api/agente/${estado.id}/confirmar`, e, cookie, { clave: clavePar('D1-A01', 'E2-A04'), confirmada: false });
+    const v1 = (await r1.json()) as VistaAgente;
+    expect(v1.causas.find((c) => c.id === 'C1')!.nivel).toBe(3);
+    expect(v1.estado.intervenciones.map((i) => i.causa)).toEqual(['C1']);
+
+    const r2 = await pedir(`/api/agente/${estado.id}/confirmar`, e, cookie, { clave: clavePar('E2-A04', 'E3-A03'), confirmada: false });
+    const v2 = (await r2.json()) as VistaAgente;
+    expect(v2.causas.find((c) => c.id === 'C1')!.nivel).toBe(2);
+    expect(v2.estado.intervenciones).toEqual([]);
+    expect(v2.estado.traza.at(-1)).toMatchObject({ tipo: 'rechazo', origen: 'guarda', accion: 'proponer_intervencion', motivo: 'nivel_insuficiente' });
+  });
+
   it('con DEMO_MODE la transcripción no llama a Meta ni registra gasto', async () => {
     const f = vi.fn(async () => new Response(JSON.stringify({ turns: [{ speaker: 'SPEAKER_00', startMs: 0, endMs: 500, transcript: 'hola' }] }), { status: 200 }));
     vi.stubGlobal('fetch', f);

@@ -6,7 +6,9 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { CASO_TALLER } from '../../nucleo/casos/taller';
-import { crearEstado, nivelesDe, vistaDe } from '../../nucleo/agente/estado';
+import { anotar, crearEstado, nivelesDe, vistaDe } from '../../nucleo/agente/estado';
+import { evaluarCausas } from '../../nucleo/agente/criterio';
+import { elegibleParaIntervencion } from '../../nucleo/entregables/elegibilidad';
 import type { EstadoAgente, RespuestaPaso, VistaAgente } from '../../nucleo/agente/tipos';
 import { crearAgente, existeAgente, guardarAgente, leerAgente, soltarCandado, tomarCandado } from '../agente/almacen';
 import { darPaso } from '../agente/bucle';
@@ -112,6 +114,18 @@ rutasAgente.post('/agente/:id/confirmar', async (c) => {
     if (confirmada) confirmadas.add(clave);
     else confirmadas.delete(clave);
     e.confirmadas = [...confirmadas].sort();
+    // Retirar una confirmación puede bajar una causa de N3: su intervención ya no es admisible
+    // (misma regla que la guarda de proponer_intervencion) y se retira con un rechazo en la traza.
+    if (!confirmada) {
+      const causas = evaluarCausas(e, nivelesDe(e));
+      const quedan = e.intervenciones.filter((i) => {
+        const c = causas.find((x) => x.id === i.causa);
+        if (c && elegibleParaIntervencion(c)) return true;
+        anotar(e, { paso: e.presupuesto.pasos, tipo: 'rechazo', origen: 'guarda', accion: 'proponer_intervencion', motivo: 'nivel_insuficiente', detalle: `Se retiró la intervención para ${i.causa}: sin la corroboración ${clave} quedó en N${c?.nivel ?? 0}; con N0 a N2 solo se admiten acciones de verificación` });
+        return false;
+      });
+      e.intervenciones = quedan;
+    }
     // El nivel de la evidencia cambió: el siguiente paso revisa el criterio de paro de nuevo.
     if (e.terminado?.motivo === 'espera' || e.terminado?.motivo === 'criterio') e.terminado = null;
     if (!(await guardarAgente(db, sesion, e, fila.version))) return c.json({ error: 'El caso cambió; vuelve a cargarlo.' }, 409);
