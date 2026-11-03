@@ -99,7 +99,7 @@ The agent may only stop on its own when the stopping criterion is met: there is 
 
 There is a third ending, `espera` ("waiting"): the agent delivers what it has when the only missing pieces are things only the consultant can provide — confirming a corroboration or supplying a requested document. The delivery says exactly what is needed, and the case resumes when the consultant provides it. Three consecutive step errors also stop the case rather than continue spending.
 
-The context documents report that the agent already resolves the workshop case end to end in 5 steps, roughly 97 seconds and roughly USD 0.20 of model spend at the time of that run. Treat those figures as a recorded observation from development, not as a guaranteed cost or duration.
+In the three evaluation runs of 2 November (see Evaluation), the agent closed the workshop case by its stopping criterion every time, in 85 to 105 seconds and USD 0.22 to 0.25 of model spend per run. Treat those figures as observations from those runs, not as a guaranteed cost or duration.
 
 ## Meta models used at each step
 
@@ -126,11 +126,11 @@ Reasoning effort per step, as set in `src/worker/agente/ejecutores.ts`:
 | Propose an intervention | `ejecutar`, `proponer_intervencion` | `medium` |
 | Request a document | `ejecutar`, `solicitar_documento` | No model call; it costs one field day |
 
-Reading sources themselves is done by `analizarFuente` (one call per source, in parallel, invoked from `leerFuentes`). Transcription is priced separately at USD 0.18 per hour of audio (`PRECIO_HORA_AUDIO_USD` in `src/config/models.ts`). A model with no registered price is never called: `precioDe` throws, because a spending cap you cannot price is not a cap.
+Reading sources themselves is done by `analizarFuente` (one call per source, in parallel, invoked from `leerFuentes`). Transcription is priced separately at USD 0.18 per hour of audio (`PRECIO_HORA_AUDIO_USD` in `src/config/models.ts`). A text model with no registered price is never called: `precioDe` throws, because a spending cap you cannot price is not a cap.
 
 ## Evaluation
 
-Seven fictional cases with a planted cause: the workshop demo case plus six evaluation cases (`src/nucleo/casos/evaluacion/`), written by a different model family than Muse so the test is independent. Each case ran three times in each of three arms: the full agent (A), a fixed flow with the same steps in a set order (B), and a single prompt (C). Run on 2 November 2026 against commit `e55974f`, 61 of 63 runs completed (two fixed-flow and single-prompt runs were cut by `max_tokens` and are excluded from n), total cost USD 7.64. The harness is `scripts/arnes/`.
+Seven fictional cases with a planted cause: the workshop demo case plus six evaluation cases (`src/nucleo/casos/evaluacion/`), written by Claude, the development agent, not by Muse, so the model family under test did not write its own test cases. Each case ran three times in each of three arms: the full agent (A), a fixed flow with the same steps in a set order (B), and a single prompt (C). Run on 2 November 2026 against commit `e55974f`, 61 of 63 runs completed (two fixed-flow and single-prompt runs were cut by `max_tokens` and are excluded from n), USD 7.64 of recorded spend (the two cut runs are recorded at zero, so their partial spend is not in that total). The harness is `scripts/arnes/`.
 
 | Caso | Condición | n | Causa encontrada | Intervenciones prematuras/corrida | Citas inválidas atrapadas/corrida | Casillas sin oración/corrida | Fugas/corrida | USD |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
@@ -160,14 +160,14 @@ How to read it:
 
 - **Causa encontrada** (planted cause found) means different things per arm. For A and B it counts only when the stopping criterion names the planted cause as the principal one, which requires it to reach N3. For C it counts whenever the single answer names it, with no evidence bar.
 - **hotel** has a single source, so by design nothing can pass N2 and no principal cause can be named: 0.00 for A is the expected result, not a miss. The single prompt names the cause, but with 3.33 premature interventions per run.
-- **imprenta** is a Laboratorio case (simulated interviews). The agent ended in a partial delivery without confirming the cause in all three runs; it leaked no hidden fact.
+- **imprenta** is a Laboratorio case (simulated interviews). The agent ended in a partial delivery without confirming the cause in all three runs; no forbidden fragment of the hidden cause appeared in the texts the harness checks for leaks (cause statements, interventions and the stated deviation).
 - **despacho** is the chronic (Weisbord) case and the weakest for the agent: 1 of 3 runs.
-- **Intervenciones prematuras** (interventions proposed for a cause below N3): 0 in every agent run across the seven cases; 2.0 to 3.3 per run for the single prompt; the fixed flow proposed some in three cases.
+- **Intervenciones prematuras** (premature interventions): for A and B, an intervention for a cause below N3 or for a planted distractor. The single prompt (C) computes no evidence level, so every intervention it proposes counts as premature: none of them went through an evidence check. Result: 0 in every agent run across the seven cases; 2.0 to 3.3 per run for the single prompt; the fixed flow proposed some in three cases.
 - n is three per cell. These numbers describe this case set, not a general accuracy rate.
 
 ## Demo and DEMO_MODE
 
-Setting `DEMO_MODE=true` makes the product replay recorded real runs at no model cost. Each agent call is keyed by a hash of its exact inputs (`llamar` in `src/worker/agente/ejecutores.ts`), so a recorded case replays step by step; only prepared fictional cases are recorded, never what a visitor pastes. If a step has no recording, the case ends with an explicit demo error instead of silently calling the model.
+Setting `DEMO_MODE=true` makes the product replay recorded runs of the prepared fictional cases (made earlier with real model calls) at no model cost. Voice transcription is turned off in DEMO_MODE, because it would call the API. Each agent call is keyed by a hash of its exact inputs (`llamar` in `src/worker/agente/ejecutores.ts`), so a recorded case replays step by step; only prepared fictional cases are recorded, never what a visitor pastes. If a step has no recording, the case ends with an explicit demo error instead of silently calling the model.
 
 To run the workshop case against a local server, `scripts/correr-agente.mjs` drives the API step by step, prints the trace, and saves the final view. Note that it spends real Meta credits unless the server runs with `DEMO_MODE=true`.
 
