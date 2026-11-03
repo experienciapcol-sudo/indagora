@@ -1,0 +1,42 @@
+[
+  {
+    "nombre": "app abierta",
+    "s": 2.5
+  },
+  {
+    "nombre": "Laboratorio: tarjeta de entrevista real",
+    "s": 6.7
+  },
+  {
+    "nombre": "grabando con voz",
+    "s": 8.3
+  },
+  {
+    "nombre": "grabación detenida",
+    "s": 57.8
+  },
+  {
+    "nombre": "transcribiendo",
+    "s": 60.9
+  },
+  {
+    "nombre": "transcripción lista",
+    "s": 70
+  },
+  {
+    "nombre": "roles asignados",
+    "s": 84.1
+  },
+  {
+    "nombre": "fuente creada",
+    "s": 91.7
+  },
+  {
+    "nombre": "texto pegado",
+    "s": 106.4
+  },
+  {
+    "nombre": "segunda fuente creada",
+    "s": 114.1
+  }
+]

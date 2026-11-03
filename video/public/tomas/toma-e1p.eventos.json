@@ -1,0 +1,54 @@
+[
+  {
+    "nombre": "app abierta",
+    "s": 2.5
+  },
+  {
+    "nombre": "agente iniciado",
+    "s": 7.7
+  },
+  {
+    "nombre": "paso 1",
+    "s": 9.3
+  },
+  {
+    "nombre": "paso 2",
+    "s": 12.3
+  },
+  {
+    "nombre": "paso 3",
+    "s": 15.3
+  },
+  {
+    "nombre": "paso 4",
+    "s": 55.8
+  },
+  {
+    "nombre": "paso 5",
+    "s": 71.1
+  },
+  {
+    "nombre": "paso con presión de la dueña",
+    "s": 113.5
+  },
+  {
+    "nombre": "corriendo",
+    "s": 150.4
+  },
+  {
+    "nombre": "agente terminado",
+    "s": 242.7
+  },
+  {
+    "nombre": "recorrido del panel",
+    "s": 262.2
+  },
+  {
+    "nombre": "generando entregables",
+    "s": 263.7
+  },
+  {
+    "nombre": "entregables listos",
+    "s": 273.9
+  }
+]

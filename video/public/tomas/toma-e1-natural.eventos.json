@@ -1,0 +1,30 @@
+[
+  {
+    "nombre": "app abierta",
+    "s": 2.5
+  },
+  {
+    "nombre": "agente iniciado",
+    "s": 7.6
+  },
+  {
+    "nombre": "corriendo",
+    "s": 9.2
+  },
+  {
+    "nombre": "agente terminado",
+    "s": 225.2
+  },
+  {
+    "nombre": "recorrido del panel",
+    "s": 244.6
+  },
+  {
+    "nombre": "generando entregables",
+    "s": 246.2
+  },
+  {
+    "nombre": "entregables listos",
+    "s": 261.4
+  }
+]
