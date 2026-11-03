@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, Html5Audio, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame, Series, Easing } from 'remotion';
+import { AbsoluteFill, Html5Audio, Img, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame, Series, Easing } from 'remotion';
 import { FPS, PAGINAS, SCENES, fraseFrame } from './timeline';
 
 // ───────────── tokens ─────────────
@@ -203,14 +203,43 @@ const Escena6: React.FC = () => {
   );
 };
 
-const Escena7: React.FC = () => (
-  <Pantalla trozos={[{ src: 's7a', rate: 2.6, srcS: 48 }]}>
-    <Pill text="Small test first (plan, try, check, adjust)" from={at(7, 'a small test')} to={at(7, 'changes sorted')} />
-    <Pill text="Changes sorted by effort and impact" from={at(7, 'changes sorted')} to={at(7, 'and targets with')} />
-    <Pill text="Targets with a baseline, a date and an owner" tone="ok" from={at(7, 'and targets with')} to={at(7, 'Click any line')} />
-    <Pill text="Every claim links to the exact sentence" tone="ok" from={at(7, 'Click any line')} to={scene(7).dur} />
-  </Pantalla>
-);
+// Anchas por frase; si la frase aún no está en la narración (audio sin regenerar) cae a una fracción de la escena.
+const atSafe = (n: number, frase: string, fraccion: number) => { try { return at(n, frase); } catch { return Math.round(scene(n).dur * fraccion); } };
+
+const Trozo7: React.FC<{ src: string; srcS: number; desde: number; hasta: number }> = ({ src, srcS, desde, hasta }) => {
+  const alloc = Math.max(8, hasta - desde);
+  const rate = Math.min(4, Math.max(0.6, srcS / (alloc / FPS)));
+  return (
+    <Sequence from={desde} durationInFrames={alloc} premountFor={30}>
+      <OffthreadVideo src={staticFile(`clips/${src}.mp4`)} playbackRate={rate} muted style={{ width: 1728, height: 972 }} />
+    </Sequence>
+  );
+};
+
+const Escena7: React.FC = () => {
+  const a = 0;
+  const b = atSafe(7, 'With one witness', 0.18);
+  const c = atSafe(7, 'When a document', 0.42);
+  const d = atSafe(7, 'with targets that', 0.72);
+  const e = atSafe(7, 'Click any line', 0.86);
+  const fin = scene(7).dur;
+  return (
+    <AbsoluteFill style={{ background: C.bg }}>
+      <div style={{ position: 'absolute', left: 96, top: 132, width: 1728, height: 850, borderRadius: 14, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,.55)', border: `1px solid ${C.line}`, background: '#f4f6f8' }}>
+        <Trozo7 src="v7a" srcS={11} desde={a} hasta={b} />
+        <Trozo7 src="v7b" srcS={11} desde={b} hasta={c} />
+        <Trozo7 src="v7c" srcS={10} desde={c} hasta={d} />
+        <Trozo7 src="v7d" srcS={8} desde={d} hasta={e} />
+        <Trozo7 src="v7e" srcS={7} desde={e} hasta={fin} />
+      </div>
+      <Pill text="The finding: backed by a document (level N4)" tone="ok" from={a + 6} to={b - 4} />
+      <Pill text="One witness → a small test first (plan, try, check, adjust)" tone="warn" from={b} to={c - 4} />
+      <Pill text="A document backs it → intervention plan, sorted by effort and impact" tone="ok" from={c} to={d - 4} />
+      <Pill text="Targets with a baseline, a date and an owner" tone="ok" from={d} to={e - 4} />
+      <Pill text="Every claim links to the exact sentence" tone="info" from={e} to={fin} />
+    </AbsoluteFill>
+  );
+};
 
 const F7: { caso: string; prompt: number; nota?: string }[] = [
   { caso: 'Workshop', prompt: 3.33 },
@@ -259,22 +288,51 @@ const Escena8: React.FC = () => {
   );
 };
 
+const TOOLS: [string, string][] = [
+  ['causas', 'Cause testing'],
+  ['oracion-n4', 'The exact sentence behind a finding'],
+  ['verificacion', 'Verification plan'],
+  ['intervencion', 'Intervention plan'],
+  ['indicadores', 'Targets: baseline, date, owner'],
+  ['oracion-intervencion', 'Every plan line links to a sentence'],
+];
 const Escena9: React.FC = () => {
   const f = useCurrentFrame();
-  const b = at(9, 'the analysis takes');
-  const c = at(9, 'Indagora investigates');
-  const d = at(9, 'The live link');
+  const g0 = atSafe(9, 'For a consultant', 0.0) + 6;
+  const b = atSafe(9, 'the analysis takes', 0.5);
+  const c = atSafe(9, 'Indagora investigates', 0.7);
+  const d = atSafe(9, 'The live link', 0.85);
+  const rejilla = Math.min(fade(f, g0, g0 + 16), fade(f, c - 14, c, 1, 0));
+  const W = 560, H = 315;
   return (
     <AbsoluteFill style={{ background: C.bg, fontFamily: FONT, alignItems: 'center' }}>
-      <div style={{ position: 'absolute', top: 150, textAlign: 'center', width: '100%' }}>
-        <div style={{ fontSize: 76, fontWeight: 800, color: C.text, opacity: fade(f, 8, 28) }}>Hours of synthesis → <span style={{ color: C.ok }}>minutes</span></div>
-        <div style={{ fontSize: 50, color: C.muted, marginTop: 14, opacity: fade(f, b - 6, b + 14) }}>Every claim defensible in front of the client.</div>
-        <div style={{ fontSize: 96, fontWeight: 800, color: C.text, marginTop: 70, letterSpacing: -2, opacity: fade(f, c - 6, c + 14) }}>Indagora</div>
-        <div style={{ fontSize: 34, color: C.accent, opacity: fade(f, c - 6, c + 14) }}>investigates before it prescribes.</div>
-        <div style={{ marginTop: 56, opacity: fade(f, d - 6, d + 14) }}>
-          <div style={{ fontSize: 48, color: C.text, fontFamily: MONO }}>indagora.experienciapcol.workers.dev</div>
-          <div style={{ fontSize: 32, color: C.muted, marginTop: 12, fontFamily: MONO }}>github.com/experienciapcol-sudo/indagora</div>
-        </div>
+      <div style={{ position: 'absolute', top: 56, width: '100%', textAlign: 'center', opacity: fade(f, 8, 28) }}>
+        <div style={{ fontSize: 64, fontWeight: 800, color: C.text }}>Hours of synthesis → <span style={{ color: C.ok }}>minutes</span></div>
+      </div>
+      <div style={{ position: 'absolute', left: 0, top: 170, width: '100%', opacity: rejilla, transform: `scale(${0.97 + 0.03 * rejilla})` }}>
+        {TOOLS.map(([img, rotulo], k) => {
+          const col = k % 3, fila = Math.floor(k / 3);
+          const o = fade(f, g0 + k * 14, g0 + k * 14 + 18);
+          return (
+            <div key={img} style={{ position: 'absolute', left: 80 + col * (W + 40), top: fila * (H + 56), width: W, opacity: o, transform: `translateY(${(1 - o) * 24}px)` }}>
+              <div style={{ width: W, height: H, borderRadius: 12, overflow: 'hidden', border: `2px solid ${C.line}`, boxShadow: '0 12px 34px rgba(0,0,0,.5)', background: '#f4f6f8' }}>
+                <Img src={staticFile(`paneles/${img}.png`)} style={{ width: W, height: 'auto', display: 'block' }} />
+              </div>
+              <div style={{ marginTop: 10, fontSize: 26, fontWeight: 700, color: C.text }}><span style={{ color: C.accent }}>●</span> {rotulo}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ position: 'absolute', bottom: 108, width: '100%', textAlign: 'center', fontSize: 38, color: C.muted, opacity: Math.min(fade(f, b - 6, b + 14), fade(f, c - 14, c, 1, 0)) }}>
+        Every claim defensible in front of the client.
+      </div>
+      <div style={{ position: 'absolute', top: 250, width: '100%', textAlign: 'center', opacity: fade(f, c - 6, c + 16) }}>
+        <div style={{ fontSize: 120, fontWeight: 800, color: C.text, letterSpacing: -2 }}>Indagora</div>
+        <div style={{ fontSize: 44, color: C.accent }}>investigates before it prescribes.</div>
+      </div>
+      <div style={{ position: 'absolute', top: 560, width: '100%', textAlign: 'center', opacity: fade(f, d - 6, d + 14) }}>
+        <div style={{ fontSize: 52, color: C.text, fontFamily: MONO }}>indagora.experienciapcol.workers.dev</div>
+        <div style={{ fontSize: 32, color: C.muted, marginTop: 14, fontFamily: MONO }}>github.com/experienciapcol-sudo/indagora</div>
       </div>
       <div style={{ position: 'absolute', bottom: 120, textAlign: 'center', width: '100%', fontSize: 26, color: C.muted, opacity: fade(f, d, d + 20) }}>
         Built with the Meta Model API · Voice: ElevenLabs · Fictional data only

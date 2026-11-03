@@ -12,7 +12,7 @@ export const CAPTIONS = caps as Caption[];
 // La narración es UNA pista continua (public/narracion-final.mp3, armada con scripts/montar-audio.mjs):
 // entre bloques lleva un respiro de ~2 s. Cada escena cambia 0.4 s después de que termina el bloque anterior,
 // así que la imagen nueva llega ~1.7 s antes de la voz.
-const CAMBIO_S = 0.4;
+const CAMBIO_S = 0.3;
 export const SCENES = bloques.map((b, i) => {
   const from = i === 0 ? 0 : Math.round(((bloques[i - 1].finMs / 1000) + CAMBIO_S) * FPS);
   const end = i === bloques.length - 1 ? TOTAL_FRAMES : Math.round(((b.finMs / 1000) + CAMBIO_S) * FPS);

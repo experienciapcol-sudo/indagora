@@ -10,7 +10,7 @@ Watch what happens with only the owner's interview. One person's word stays at "
 
 Now add the shop foreman, the purchasing manager, and the hardware delivery log. Specialist readers go through each source in parallel, and the picture updates. The agent compares where the delays happen with where they don't: closets with hinges run late, plain tables ship on time. Two people in different jobs say the same thing, the log confirms the dates, and the meter climbs to "backed by a document." Only then does it name the cause.
 
-Next it writes what you'd hand a client: a small test to confirm the cause before anyone spends money, changes sorted by effort, and targets with a baseline, a date and an owner. Click any line and you land on the sentence behind it.
+Then the findings turn into work you can hand a client. With one witness, you get a small test to confirm the cause before anyone spends money. When a document backs the cause, you get an intervention plan: changes sorted by effort and impact, with targets that have a baseline, a date and an owner. Click any line, and you land on the sentence behind it.
 
 We tested it against a single prompt on seven made-up cases, three runs each. The single prompt names a cause more often, because nothing stops it, and it recommends two or three fixes per run that the evidence doesn't support yet. The agent did that zero times.
 

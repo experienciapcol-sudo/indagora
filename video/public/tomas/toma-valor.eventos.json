@@ -1,0 +1,22 @@
+[
+  {
+    "nombre": "valor A: agente con una fuente",
+    "s": 7.5
+  },
+  {
+    "nombre": "valor A listo",
+    "s": 23.1
+  },
+  {
+    "nombre": "valor B: caso completo",
+    "s": 26.6
+  },
+  {
+    "nombre": "valor B: oración que sostiene N4",
+    "s": 37.7
+  },
+  {
+    "nombre": "valor B: puntero de la intervención",
+    "s": 53.9
+  }
+]

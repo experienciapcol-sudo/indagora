@@ -18,7 +18,7 @@ let off = 12, pcm = null;
 while (off + 8 <= wav.length) { const id = wav.toString('ascii', off, off + 4), n = wav.readUInt32LE(off + 4); if (id === 'data') { pcm = new Int16Array(wav.buffer.slice(wav.byteOffset + off + 8, wav.byteOffset + off + 8 + n)); break; } off += 8 + n + (n % 2); }
 const V = 160, nV = Math.floor(pcm.length / V), calla = [];
 for (let f = 0; f < nV; f++) { let e = 0; for (let i = f * V; i < (f + 1) * V; i++) e += pcm[i] * pcm[i]; calla.push(Math.sqrt(e / V) < 413); }
-const largos = []; for (let f = 0; f < nV; ) { let g = f; while (g < nV && calla[g] === calla[f]) g++; if (calla[f] && g - f >= 130 && f > 0) largos.push([f * 10, g * 10]); f = g; }
+const largos = []; for (let f = 0; f < nV; ) { let g = f; while (g < nV && calla[g] === calla[f]) g++; if (calla[f] && g - f >= 75 && f > 0) largos.push([f * 10, g * 10]); f = g; }
 const primero = calla.findIndex((c) => !c) * 10; let ultimo = nV - 1; while (calla[ultimo]) ultimo--; ultimo = (ultimo + 1) * 10;
 console.log('respiros detectados (ms):', JSON.stringify(largos));
 const parrafos = readFileSync('narracion-para-pegar.txt', 'utf8').trim().split(/\n\n+/);
