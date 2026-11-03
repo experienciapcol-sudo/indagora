@@ -1,0 +1,17 @@
+A furniture workshop keeps missing delivery dates on its closets. A customer just cancelled one. The owner tells you the team is lazy. The real reason is a new supplier for hinges and drawer slides that takes nine days to deliver instead of three.
+
+If you work as a consultant, you've seen some version of this. You interview four people and get four opinions. The client wants answers by Friday, and the easy move is to recommend something before you've checked anything.
+
+Indagora is built for that moment. It runs on Meta's Muse models. One investigating agent plans the work and hands pieces to specialist roles: one reads each interview, one maps possible causes, one writes the plan. Before any step runs, plain code checks it and can say no.
+
+You start with what you have: typed notes, or audio from the interview itself. I record a question, Indagora transcribes it, and I mark who said what. Every sentence gets an ID, so every conclusion can point back to the words a real person said.
+
+Watch what happens with only the owner's interview. One person's word stays at "one witness" on the evidence meter. I even pass along the owner's push for a plan today. The agent declines, and when it tries to repeat a step, the code blocks that too. It asks for more interviews instead.
+
+Now add the shop foreman, the purchasing manager, and the hardware delivery log. Specialist readers go through each source in parallel, and the picture updates. The agent compares where the delays happen with where they don't: closets with hinges run late, plain tables ship on time. Two people in different jobs say the same thing, the log confirms the dates, and the meter climbs to "backed by a document." Only then does it name the cause.
+
+Next it writes what you'd hand a client: a small test to confirm the cause before anyone spends money, changes sorted by effort, and targets with a baseline, a date and an owner. Click any line and you land on the sentence behind it.
+
+We tested it against a single prompt on seven made-up cases, three runs each. The single prompt names a cause more often, because nothing stops it, and it recommends two or three fixes per run that the evidence doesn't support yet. The agent did that zero times.
+
+For a consultant, that means a diagnosis you can defend in front of the client, sentence by sentence, and the analysis takes about four minutes. Indagora investigates before it prescribes. The live link is below.
