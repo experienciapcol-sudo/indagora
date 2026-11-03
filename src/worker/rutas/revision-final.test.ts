@@ -33,6 +33,19 @@ const pedir = (ruta: string, e: Bindings, cookie: string, cuerpo?: unknown) =>
   app.request(ruta, { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo) }, e);
 
 describe('revisión final', () => {
+  it('K9/K10: fuentes vacías, ids repetidos o texto de más de 60,000 caracteres dan 400 sin llamar al modelo', async () => {
+    const f = vi.fn();
+    vi.stubGlobal('fetch', f);
+    const e = env();
+    const fuenteDe = (texto: string, id = 'E1') => ({ id, tipo: 'entrevista', rol: 'Testigo ficticio', modalidad: 'notas', titulo: '', entrevistador: null, texto });
+    const crear = (fuentes: unknown[]) => pedir('/api/agente', e, '', { titulo: 'Caso hostil', objetivo: 'No diagnosticar sin evidencia', fuentes });
+    expect((await crear([fuenteDe('   \n\n   ')])).status).toBe(400);
+    expect((await crear([fuenteDe('Una frase.'), fuenteDe('Otra frase.')])).status).toBe(400);
+    expect((await crear([fuenteDe('Hay un retraso ficticio. '.repeat(2401))])).status).toBe(400);
+    expect((await crear([fuenteDe('x'.repeat(60_000))])).status).toBe(200);
+    expect(f).not.toHaveBeenCalled();
+  });
+
   it('retirar la corroboración que daba N3 retira la intervención de esa causa', async () => {
     const e = env();
     const cookie = (await app.request('/api/gasto', {}, e)).headers.get('set-cookie')!.split(';')[0];

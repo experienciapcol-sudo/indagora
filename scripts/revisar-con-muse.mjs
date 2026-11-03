@@ -45,6 +45,7 @@ const PROHIBIDO = /(^|\/)(\.dev\.vars|\.env[^/]*|CLAUDE\.local\.md|interno|node_
 
 const PASOS = {
   bugs: `PASO A · BUGS. Busca bugs reales: lógica incorrecta, estados que se pueden corromper, condiciones de carrera, errores de asincronía (promesas sin esperar, efectos de React con dependencias o limpieza incorrectas, respuestas que llegan fuera de orden), límites (vacíos, uno, máximo), validaciones que se pueden evadir, formas de que el modelo meta una conclusión sin evidencia, manejo de errores que pierde estado o dinero ya gastado. No reportes asuntos de seguridad de abuso salvo que sean un bug de lógica.`,
+  casos: `PASO C · CASOS DE PRUEBA HOSTILES. Esta vez no reportes hallazgos e ignora el formato de hallazgos: propone de 12 a 16 casos de prueba concretos para atacar este código por sus entradas públicas (texto de entrevistas, roles, títulos, indicación del consultor, notas, parámetros del Laboratorio, cuerpos HTTP). Cubre: instrucciones al modelo dentro del texto de una entrevista, hablantes falsos o que se hacen pasar por el entrevistador, citas o ids que no existen, números sin origen, Unicode raro (ancho cero, dirección invertida, homoglifos, emojis, saltos de línea internos), entradas vacías o gigantes, dos pasos en paralelo, reanudar un caso, y revelar durante la entrevista. Para cada caso da, en Markdown: "### K<n> · <título>", la ruta y el cuerpo exacto (texto literal listo para pegar, todo ficticio y en español), la invariante del producto que debe sostenerse, y si necesita una llamada real al modelo o basta una prueba sin red.`,
   abuso: `PASO B · ABUSO Y SEGURIDAD. Piensa como un visitante hostil de la URL pública. Busca: evasión de los topes de gasto (por sesión, global, subtope del Laboratorio, límites por IP, presupuesto del caso), manipulación de la cookie o la sesión, acceso a casos de otra sesión (IDOR), cuerpos enormes o malformados (JSON, audio, campos larguísimos, arreglos gigantes), inyección de instrucciones al modelo por el texto de entrevistas, notas, nombres de empresa o la indicación del consultor, fuga de la causa oculta o de los hechos prohibidos del Laboratorio hacia el navegador o hacia un prompt que no debe verla, XSS o inyección en lo que se renderiza (dangerouslySetInnerHTML, href/src construidos, nombres de archivo), y DEMO_MODE que gaste o grabe lo que no debe.`,
 };
 
@@ -69,6 +70,9 @@ Reglas de tu respuesta:
 **Qué falla:** una oración.
 **Escenario:** entrada o estado concreto que lo dispara y qué pasa.
 **Confianza:** alta, media o baja, con la razón en pocas palabras.`;
+
+// El paso de casos pide otra salida: su propio sistema, sin el formato de hallazgos.
+const SISTEMA_CASOS = `Eres un probador de software hostil e independiente. El proyecto es Indagora (Cloudflare Workers + Hono + D1 + React, TypeScript): un agente de diagnóstico organizacional donde el modelo solo señala ids de oraciones y el código reconstruye y verifica las citas, calcula los niveles N0 a N4 (una sola fuente no pasa de N2; solo N3 o N4 admite intervención) y aprueba o rechaza cada acción. Tu trabajo NO es reportar bugs: es diseñar casos de prueba concretos que intenten romper esas reglas. Responde en español y en Markdown, solo con los casos pedidos, sin preámbulo.`;
 
 const args = process.argv.slice(2);
 const opcion = (n, d) => {
@@ -141,7 +145,7 @@ async function correr(t) {
         reasoning_effort: 'medium',
         max_tokens: MAX_SALIDA,
         prompt_cache_key: `revision-${t.grupo}`,
-        messages: [{ role: 'system', content: sistema }, { role: 'user', content: t.usuario }],
+        messages: [{ role: 'system', content: t.paso === 'casos' ? SISTEMA_CASOS : sistema }, { role: 'user', content: t.usuario }],
       }),
       signal: AbortSignal.timeout(600_000),
     });
