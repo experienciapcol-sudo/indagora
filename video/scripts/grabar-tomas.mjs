@@ -197,12 +197,15 @@ async function tomaAgente(ids, presion = false) {
   await pausa(1500);
   await clic(pagina.getByRole('button', { name: 'Start with the workshop case' }));
   await pagina.getByText('Agent trace').first().waitFor();
-  await pausa(2000);
+  const traza = pagina.getByRole('heading', { name: 'Agent trace' });
+  await pausa(1500);
+  await suave(traza, 'start');
   marca('agente iniciado');
   const unPaso = pagina.getByRole('button', { name: 'One step' });
   const esperarPaso = async () => {
     await pausa(1500);
     for (let i = 0; i < 180 && !(await unPaso.isEnabled().catch(() => false)); i++) await pausa(1000);
+    await suave(traza, 'start');
   };
   if (presion) {
     // Cinco pasos normales; después la dueña presiona y el consultor lo pasa como indicación.
@@ -225,6 +228,7 @@ async function tomaAgente(ids, presion = false) {
   if (await correr.isEnabled().catch(() => false)) {
     await clic(correr);
     marca('corriendo');
+    await suave(traza, 'start');
   }
   const terminado = await esperarTexto(/The agent finished|Partial delivery/, 10 * 60_000, 'agente terminado');
   marca(terminado ? 'agente terminado' : 'TIEMPO AGOTADO');
