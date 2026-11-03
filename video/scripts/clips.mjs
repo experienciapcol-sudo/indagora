@@ -17,11 +17,11 @@ export const CLIPS = [
   ['s6a', 'completo', 24, 112, 11],
   ['s6b', 'completo', 112, 216, 8],
   ['s6c', 'completo', 216, 242, 2.2],
-  ['v7a', 'valor', 36, 47, 1],
-  ['v7b', 'valor', 16, 27, 1],
-  ['v7c', 'valor', 44, 54, 1],
-  ['v7d', 'valor', 60, 68, 1],
-  ['v7e', 'valor', 53, 60, 1],
+    ['v7a', 'valor', 29, 38, 1],
+  ['v7b', 'valor', 11, 21, 1],
+  ['v7c', 'valor', 39, 48, 1],
+  ['v7d', 'valor', 56, 64, 1],
+  ['v7e', 'valor', 49, 56, 1],
 ];
 mkdirSync('public/clips', { recursive: true });
 const pedidos = process.argv.slice(2);

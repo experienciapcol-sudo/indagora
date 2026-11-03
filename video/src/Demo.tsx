@@ -226,9 +226,9 @@ const Escena7: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: C.bg }}>
       <div style={{ position: 'absolute', left: 96, top: 132, width: 1728, height: 850, borderRadius: 14, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,.55)', border: `1px solid ${C.line}`, background: '#f4f6f8' }}>
-        <Trozo7 src="v7a" srcS={11} desde={a} hasta={b} />
-        <Trozo7 src="v7b" srcS={11} desde={b} hasta={c} />
-        <Trozo7 src="v7c" srcS={10} desde={c} hasta={d} />
+        <Trozo7 src="v7a" srcS={9} desde={a} hasta={b} />
+        <Trozo7 src="v7b" srcS={10} desde={b} hasta={c} />
+        <Trozo7 src="v7c" srcS={9} desde={c} hasta={d} />
         <Trozo7 src="v7d" srcS={8} desde={d} hasta={e} />
         <Trozo7 src="v7e" srcS={7} desde={e} hasta={fin} />
       </div>

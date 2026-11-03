@@ -37,20 +37,20 @@
   },
   {
     "bloque": 7,
-    "inicioMs": 117670,
-    "finMs": 132750,
-    "texto": "Next it writes what you'd hand a client:"
+    "inicioMs": 117700,
+    "finMs": 140730,
+    "texto": "Then the findings turn into work you can"
   },
   {
     "bloque": 8,
-    "inicioMs": 133830,
-    "finMs": 150990,
+    "inicioMs": 141820,
+    "finMs": 158970,
     "texto": "We tested it against a single prompt on "
   },
   {
     "bloque": 9,
-    "inicioMs": 152130,
-    "finMs": 164770,
+    "inicioMs": 160110,
+    "finMs": 172750,
     "texto": "For a consultant, that means a diagnosis"
   }
 ]
