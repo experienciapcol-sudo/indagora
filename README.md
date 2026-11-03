@@ -72,7 +72,7 @@ A consultant instruction given for a step does not bypass this: it is recorded i
 
 The model never produces quoted text. It can only point to identifiers of real sentences (`E1-007`) or real claims (`E2-A05`), chosen from an enumeration of the identifiers that actually exist in the loaded sources. The server then reconstructs the text from the source and verifies the speaker, the turn, and the anchor. Pointers to claims that do not exist, or that belong to a source that was not read, are rejected with the motive `evidencia_ajena`.
 
-The same rule applies inside the diagnosis itself: every filled cell of the deviation, the Is / Is Not table, the Weisbord sweep, every cause, and every cause test must point to verified claims. An empty-evidence cell is treated as an empty cell, never as a finding. The motives `casilla_sin_evidencia`, `juicio_sin_evidencia`, and `causa_sin_evidencia` exist precisely to drop unsupported content.
+The same rule applies inside the diagnosis itself: every filled cell of the deviation, the Is / Is Not table, the Weisbord sweep, every cause, and every cause test must point to claims that passed the citation verifier. An empty-evidence cell is treated as an empty cell, never as a finding. The motives `casilla_sin_evidencia`, `juicio_sin_evidencia`, and `causa_sin_evidencia` exist precisely to drop unsupported content.
 
 ### Evidence levels N0–N4, computed by code
 
