@@ -15,5 +15,5 @@ const salida = await transcribe({
   tokenLevelTimestamps: true,
 });
 const { captions } = toCaptions({ whisperCppOutput: salida });
-writeFileSync('src/subtitulos.json', JSON.stringify(captions, null, 2));
+writeFileSync('.tomas-tmp/whisper-tokens.json', JSON.stringify(captions));
 console.log(captions.length, 'palabras; última termina en', captions.at(-1).endMs / 1000, 's');

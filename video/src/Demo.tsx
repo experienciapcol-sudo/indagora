@@ -261,7 +261,6 @@ const Escena8: React.FC = () => {
 
 const Escena9: React.FC = () => {
   const f = useCurrentFrame();
-  const a = at(9, 'a diagnosis you can');
   const b = at(9, 'the analysis takes');
   const c = at(9, 'Indagora investigates');
   const d = at(9, 'The live link');
@@ -312,11 +311,7 @@ export const Demo: React.FC = () => (
         </Sequence>
       );
     })}
-    {SCENES.map((s) => (
-      <Sequence key={`a${s.id}`} from={s.from + s.padFrames} durationInFrames={s.segDur} name={`Voz ${s.id}`}>
-        <Html5Audio src={staticFile('narracion.mp3')} trimBefore={s.segFrom} />
-      </Sequence>
-    ))}
+    <Html5Audio src={staticFile('narracion-final.mp3')} />
     <Subtitulos />
   </AbsoluteFill>
 );

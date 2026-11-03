@@ -12,6 +12,15 @@ for (const t of tokens) {
 const w = hab.filter((x) => /[a-z0-9]/i.test(x.t));
 const norm = (x) => x.toLowerCase().replace(/[^a-z0-9]/g, '');
 
+// Inicio y fin reales de cada bloque: los respiros entre bloques son los silencios largos de la pista final.
+const wav = readFileSync('.tomas-tmp/narracion-16k.wav');
+let off = 12, pcm = null;
+while (off + 8 <= wav.length) { const id = wav.toString('ascii', off, off + 4), n = wav.readUInt32LE(off + 4); if (id === 'data') { pcm = new Int16Array(wav.buffer.slice(wav.byteOffset + off + 8, wav.byteOffset + off + 8 + n)); break; } off += 8 + n + (n % 2); }
+const V = 160, nV = Math.floor(pcm.length / V), calla = [];
+for (let f = 0; f < nV; f++) { let e = 0; for (let i = f * V; i < (f + 1) * V; i++) e += pcm[i] * pcm[i]; calla.push(Math.sqrt(e / V) < 413); }
+const largos = []; for (let f = 0; f < nV; ) { let g = f; while (g < nV && calla[g] === calla[f]) g++; if (calla[f] && g - f >= 130 && f > 0) largos.push([f * 10, g * 10]); f = g; }
+const primero = calla.findIndex((c) => !c) * 10; let ultimo = nV - 1; while (calla[ultimo]) ultimo--; ultimo = (ultimo + 1) * 10;
+console.log('respiros detectados (ms):', JSON.stringify(largos));
 const parrafos = readFileSync('narracion-para-pegar.txt', 'utf8').trim().split(/\n\n+/);
 const guion = [];
 parrafos.forEach((p, b) => p.split(/\s+/).forEach((x) => guion.push({ x, b })));
@@ -42,6 +51,8 @@ for (let i = 0; i < n; i++) {
 }
 console.log('palabras del guion sin par en whisper:', par.filter((p) => p === null).length, 'de', n);
 
+const iniciosBloque = new Map(); parrafos.forEach((_, b) => iniciosBloque.set(guion.findIndex((g) => g.b === b), b === 0 ? primero : largos[b - 1][1]));
+for (const [i, ini] of iniciosBloque) if (tiempos[i].s < ini) tiempos[i] = { s: ini, e: Math.max(tiempos[i].e, ini + 200) };
 const caps = guion.map((g, i) => {
   const finFrase = /[.?!]$/.test(g.x);
   const siguienteEsOtroBloque = guion[i + 1] && guion[i + 1].b !== g.b;
@@ -49,6 +60,7 @@ const caps = guion.map((g, i) => {
     ...((finFrase || siguienteEsOtroBloque) ? { pageBreakAfter: true } : {}) };
 });
 writeFileSync('src/subtitulos.json', JSON.stringify(caps));
-const bloques = parrafos.map((_, b) => { const k = guion.findIndex((g) => g.b === b); const l = guion.map((g) => g.b).lastIndexOf(b); return { bloque: b + 1, inicioMs: tiempos[k].s, finMs: tiempos[l].e, texto: parrafos[b].slice(0, 40) }; });
+if (largos.length !== parrafos.length - 1) throw new Error('Se esperaban ' + (parrafos.length - 1) + ' respiros y hay ' + largos.length);
+const bloques = parrafos.map((_, b) => ({ bloque: b + 1, inicioMs: b === 0 ? primero : largos[b - 1][1], finMs: b === parrafos.length - 1 ? ultimo : largos[b][0], texto: parrafos[b].slice(0, 40) }));
 writeFileSync('src/bloques.json', JSON.stringify(bloques, null, 2));
 console.log(bloques.map((b) => `${b.bloque}: ${(b.inicioMs / 1000).toFixed(1)}–${(b.finMs / 1000).toFixed(1)} ${b.texto}`).join('\n'));

@@ -6,36 +6,22 @@ import caps from './subtitulos.json';
 export const FPS = 30;
 export const TOTAL_FRAMES = 5400;
 
-// Segundos de silencio antes de cada bloque (dan tiempo a ver la pantalla antes de la voz).
-const PAD = [0.3, 0.5, 0.5, 2.5, 2.5, 1.5, 2.0, 2.0, 1.5];
-
 export type Caption = { text: string; startMs: number; endMs: number; timestampMs: number | null; confidence: number | null; pageBreakAfter?: boolean };
 export const CAPTIONS = caps as Caption[];
 
-const segStartS = bloques.map((b) => b.inicioMs / 1000);
-const segEndS = bloques.map((b, i) => (i + 1 < bloques.length ? bloques[i + 1].inicioMs / 1000 : b.finMs / 1000));
+// La narración es UNA pista continua (public/narracion-final.mp3, armada con scripts/montar-audio.mjs):
+// entre bloques lleva un respiro de ~2 s. Cada escena cambia 0.4 s después de que termina el bloque anterior,
+// así que la imagen nueva llega ~1.7 s antes de la voz.
+const CAMBIO_S = 0.4;
+export const SCENES = bloques.map((b, i) => {
+  const from = i === 0 ? 0 : Math.round(((bloques[i - 1].finMs / 1000) + CAMBIO_S) * FPS);
+  const end = i === bloques.length - 1 ? TOTAL_FRAMES : Math.round(((b.finMs / 1000) + CAMBIO_S) * FPS);
+  return { id: i + 1, from, dur: end - from };
+});
 
-// Inicio de cada escena en cuadros (redondeado acumulado) y duración.
-const brutas = PAD.map((p, i) => p + (segEndS[i] - segStartS[i]));
-const suma = brutas.reduce((a, b) => a + b, 0);
-brutas[brutas.length - 1] += TOTAL_FRAMES / FPS - suma; // la cola va a la escena final
-
-export const SCENES = (() => {
-  let acc = 0;
-  return brutas.map((d, i) => {
-    const from = Math.round(acc * FPS);
-    acc += d;
-    const end = i === brutas.length - 1 ? TOTAL_FRAMES : Math.round(acc * FPS);
-    return { id: i + 1, from, dur: end - from, padFrames: Math.round(PAD[i] * FPS), segFrom: Math.round(segStartS[i] * FPS), segDur: Math.round((segEndS[i] - segStartS[i]) * FPS) };
-  });
-})();
-
-// Segundo de narración (del MP3) → cuadro global.
+// Segundo de la narración → cuadro global.
 export function narrFrame(tS: number): number {
-  const i = Math.max(0, segEndS.findIndex((e) => tS < e));
-  const idx = tS >= segEndS[segEndS.length - 1] ? segEndS.length - 1 : i;
-  const s = SCENES[idx];
-  return Math.round(s.from + s.padFrames + (tS - segStartS[idx]) * FPS);
+  return Math.round(tS * FPS);
 }
 
 // Cuadro global en que se dice una frase (la primera palabra); null si no aparece.
