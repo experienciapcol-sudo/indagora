@@ -31,26 +31,26 @@
   },
   {
     "bloque": 6,
-    "inicioMs": 87370,
-    "finMs": 116710,
+    "inicioMs": 87420,
+    "finMs": 116060,
     "texto": "Now add the shop foreman, the purchasing"
   },
   {
     "bloque": 7,
-    "inicioMs": 117700,
-    "finMs": 140730,
+    "inicioMs": 117110,
+    "finMs": 140140,
     "texto": "Then the findings turn into work you can"
   },
   {
     "bloque": 8,
-    "inicioMs": 141820,
-    "finMs": 158970,
+    "inicioMs": 141210,
+    "finMs": 158380,
     "texto": "We tested it against a single prompt on "
   },
   {
     "bloque": 9,
-    "inicioMs": 160110,
-    "finMs": 172750,
+    "inicioMs": 159500,
+    "finMs": 172140,
     "texto": "For a consultant, that means a diagnosis"
   }
 ]

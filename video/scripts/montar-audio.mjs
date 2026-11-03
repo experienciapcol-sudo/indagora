@@ -51,7 +51,20 @@ function comprimir(x) {
 ff(['-i', 'public/narracion.mp3', '-ar', String(SR), '-ac', '1', '-c:a', 'pcm_s16le', '.tomas-tmp/n44.wav']);
 const x = leerWav('.tomas-tmp/n44.wav');
 const orig = JSON.parse(readFileSync('.tomas-tmp/bloques-orig.json', 'utf8'));
-const corte = (ms) => Math.max(0, Math.round((ms / 1000 - 0.15) * SR)); // 150 ms antes de la primera palabra
+// Corte de bloque: mitad de la última pausa (≥ 0.25 s) que termina cerca de la primera palabra. Whisper a veces ancla el
+// inicio de una palabra tarde, y cortar "150 ms antes" podía dejar el pedazo de la palabra pegado al bloque anterior.
+const nFx = Math.floor(x.length / FRAME);
+const silX = []; for (let f = 0; f < nFx; f++) { let e = 0; for (let i = f * FRAME; i < (f + 1) * FRAME; i++) e += x[i] * x[i]; silX.push(Math.sqrt(e / FRAME) < UMBRAL); }
+const runsX = []; for (let f = 0; f < nFx; ) { let g = f; while (g < nFx && silX[g] === silX[f]) g++; if (silX[f]) runsX.push([f, g]); f = g; }
+const corte = (ms) => {
+  const t = Math.round(ms / 10);
+  const c = runsX.filter(([a, b]) => b - a >= 25 && b <= t + 30 && b >= t - 150).at(-1);
+  const viejo = Math.max(0, Math.round((ms / 1000 - 0.15) * SR));
+  if (!c) { console.log('sin pausa cerca de', ms / 1000, 's: corte a 150 ms'); return viejo; }
+  const nuevo = Math.floor((c[0] + c[1]) / 2) * FRAME;
+  console.log('corte en', (nuevo / SR).toFixed(2), 's (antes', (viejo / SR).toFixed(2) + ')');
+  return nuevo;
+};
 const limites = orig.map((b, i) => [i === 0 ? 0 : corte(b.inicioMs), i + 1 < orig.length ? corte(orig[i + 1].inicioMs) : x.length]);
 const bloques = limites.map(([a, b]) => comprimir(x.subarray(a, b)));
 
