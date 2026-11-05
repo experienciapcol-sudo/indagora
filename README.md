@@ -6,6 +6,8 @@
 
 **Live demo:** https://indagora.experienciapcol.workers.dev. It runs in `DEMO_MODE`, which replays recorded runs of the fictional workshop case at no model cost. Start with the **How it works** tab (link "First time? See how it works"): it walks through the whole flow on the workshop case, from the interviews to the deliverables, and shows who does each step: the consultant, the model or the code. Add `?lang=en` to the URL for the English interface.
 
+**Demo video (3 min):** https://youtu.be/G1YpbEGqHDs
+
 Indagora is an organizational diagnosis agent for management consultants. It receives interviews — text or audio — and a goal, investigates on its own using a recognized problem-analysis method, and returns a diagnosis and an intervention plan in which every conclusion points to the sentence that supports it. The code reviews every move the agent makes before it happens.
 
 Only fictional data is used anywhere in this repository, including the demo case, the tests, and the evaluation fixtures.
@@ -224,7 +226,7 @@ The deliverables follow published methods, cited in the code where they are impl
 
 ## Demo video
 
-The 3-minute demo video is built in `video/` with [Remotion](https://www.remotion.dev). The product footage was recorded against a local server with real Meta Model API calls (`video/scripts/grabar-tomas.mjs`, Playwright); some scenes reopen saved cases and call no model. The English version of the workshop case used on screen is a faithful translation (`video/scripts/taller-en.mjs`). The voice-over was generated with ElevenLabs (free plan): *Voice: ElevenLabs*. Remotion has its own license (see remotion.dev/license); the MIT license below covers this project's own code, not Remotion.
+Watch it at https://youtu.be/G1YpbEGqHDs. The 3-minute demo video is built in `video/` with [Remotion](https://www.remotion.dev). The product footage was recorded against a local server with real Meta Model API calls (`video/scripts/grabar-tomas.mjs`, Playwright); some scenes reopen saved cases and call no model. The English version of the workshop case used on screen is a faithful translation (`video/scripts/taller-en.mjs`). The voice-over was generated with ElevenLabs (free plan): *Voice: ElevenLabs*. Remotion has its own license (see remotion.dev/license); the MIT license below covers this project's own code, not Remotion.
 
 ## License
 
