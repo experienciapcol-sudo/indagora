@@ -4,6 +4,8 @@
 
 **Before you fix a company, find out what's actually broken.**
 
+**Live demo:** https://indagora.experienciapcol.workers.dev. It runs in `DEMO_MODE`, which replays recorded runs of the fictional workshop case at no model cost. Start with the **How it works** tab (link "First time? See how it works"): it walks through the whole flow on the workshop case, from the interviews to the deliverables, and shows who does each step: the consultant, the model or the code. Add `?lang=en` to the URL for the English interface.
+
 Indagora is an organizational diagnosis agent for management consultants. It receives interviews — text or audio — and a goal, investigates on its own using a recognized problem-analysis method, and returns a diagnosis and an intervention plan in which every conclusion points to the sentence that supports it. The code reviews every move the agent makes before it happens.
 
 Only fictional data is used anywhere in this repository, including the demo case, the tests, and the evaluation fixtures.
